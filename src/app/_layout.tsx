@@ -1,9 +1,7 @@
-// app/_layout.tsx
 import { Stack, SplashScreen } from "expo-router";
 import { useFonts } from "expo-font";
 import { useEffect } from "react";
 
-// Keep splash screen visible until fonts are loaded
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -15,12 +13,12 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded) {
-      SplashScreen.hideAsync(); // hide splash when fonts are ready
+      SplashScreen.hideAsync(); 
     }
   }, [fontsLoaded]);
 
   if (!fontsLoaded) {
-    return null; // could show a loading indicator here
+    return null; 
   }
 
   return (

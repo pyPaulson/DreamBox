@@ -11,12 +11,10 @@ export default function WelcomeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* App Icon - using Ionicons checkmark */}
       <View style={styles.iconContainer}>
         <Ionicons name="checkbox" size={150} color="#4787ed" />
       </View>
 
-      {/* Welcome Message */}
       <Text style={styles.title}>Welcome to DreamBox, User!</Text>
       <Text style={styles.subtitle}>Let’s build your savings!</Text>
 
@@ -24,7 +22,7 @@ export default function WelcomeScreen() {
         <FormButton
           title="Continue"
           onPress={() => {
-            router.replace("/(tabs)/index" as any); 
+            router.replace("/(tabs)"); 
             
           }}
         />
