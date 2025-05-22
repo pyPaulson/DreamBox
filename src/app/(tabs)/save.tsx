@@ -1,14 +1,54 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import { StyleSheet, Text, View } from "react-native";
+import React from "react";
+import PlanItem from "@/components/PlanItem";
+import { MaterialIcons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
+import AppColors from "@/constants/AppColors";
+import Fonts from "@/constants/Fonts";
+import { StatusBar } from "expo-status-bar";
 
 const SavingScreen = () => {
   return (
-    <View>
-      <Text>SavingScreen</Text>
-    </View>
-  )
-}
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="dark" />
+      <Text style={styles.header}>Plans</Text>
+      <PlanItem
+        title={"SafeLock"}
+        description={
+          "Discipline your saving habits by locking your funds for a specific time. You won’t be able to withdraw until your lock period ends"
+        }
+        icon="lock-outline"
+      />
+      <PlanItem
+        title={"MyGoal"}
+        description={
+          "Set a personal saving goal with a target amount and deadline like rent, business, or phone."
+        }
+        icon="my-location"
+      />
+      <PlanItem
+        title={"Emergency"}
+        description={
+          "Set aside a portion of your funds into a secure emergency fund. Withdraw only during real emergencies."
+        }
+        icon="emergency"
+      />
+    </SafeAreaView>
+  );
+};
 
-export default SavingScreen
+export default SavingScreen;
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: AppColors.background_one,
+  },
+  header: {
+    color: AppColors.primary,
+    fontSize: 25,
+    fontFamily: Fonts.bodyBold,
+    padding: 20,
+    textAlign: "center",
+  },
+});
