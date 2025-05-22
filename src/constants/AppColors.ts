@@ -9,6 +9,7 @@ const AppColors = {
   background_two: "#EAEAF5",
   grey: "#696464",
   grey_two: "#BCB6B6",
+  borderColor: "#ccc",
 };
 
 export default AppColors;
