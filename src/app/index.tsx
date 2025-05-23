@@ -1,1 +1,1 @@
-export { default } from "./(tabs)/save/safeLock";
+export { default } from "./splash";

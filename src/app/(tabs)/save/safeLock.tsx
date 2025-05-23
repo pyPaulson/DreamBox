@@ -11,14 +11,14 @@ const SaveLock = () => {
 
   const data = {
     active: [
-      { title: "Rent", amount: 4000, percentage: 47 },
-      { title: "Laptop", amount: 890, percentage: 17 },
-      { title: "Laptop", amount: 6900, percentage: 77 },
-      { title: "Laptop", amount: 600, percentage: 37 },
+      { title: "Rent", amount: 4000, percentage: 47, targetDate:"Fri May 23 2025", emergencyFund: 10 },
+      { title: "Laptop", amount: 890, percentage: 17, targetDate:"Fri May 23 2025", emergencyFund: 10 },
+      { title: "Laptop", amount: 6900, percentage: 77, targetDate:"Fri May 23 2025", emergencyFund: 10 },
+      { title: "Laptop", amount: 600, percentage: 37, targetDate:"Fri May 23 2025", },
     ],
     completed: [
-      { title: "Phone", amount: 2000, percentage: 100 },
-      { title: "Bills", amount: 1200, percentage: 100 },
+      { title: "Phone", amount: 2000, percentage: 100, targetDate:"Fri May 23 2025", emergencyFund: 10 },
+      { title: "Bills", amount: 1200, percentage: 100, targetDate:"Fri May 23 2025", emergencyFund: 10 },
     ],
   };
 

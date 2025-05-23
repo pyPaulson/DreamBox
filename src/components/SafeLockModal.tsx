@@ -144,7 +144,7 @@ const SafeLockModal = ({ visible, onClose }: Props) => {
                 </Text>
               </View>
 
-              <FormButton title="Create Plan" onPress={() => {}} />
+              <FormButton title="Create SafeLock" onPress={() => {}} />
 
               <Pressable onPress={onClose} style={styles.cancelBtn}>
                 <Text style={styles.cancelText}>Cancel</Text>
@@ -234,6 +234,7 @@ const styles = StyleSheet.create({
   },
   dropdownItem: {
     padding: 15,
+    borderBottomWidth: 0.25,
     borderBottomColor: AppColors.grey_two,
   },
   checkboxRow: {
@@ -250,7 +251,7 @@ const styles = StyleSheet.create({
   },
   cancelBtn: {
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 20,
   },
   cancelText: {
     color: AppColors.primary,

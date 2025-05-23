@@ -10,15 +10,27 @@ interface Props {
   title: string;
   amount: number;
   percentage: number;
+  emergencyFund?: number;
+  targetDate: string; 
 }
 
-const GoalCard = ({ title, amount, percentage }: Props) => {
+const GoalCard = ({
+  title,
+  amount,
+  percentage,
+  targetDate,
+  emergencyFund,
+}: Props) => {
   return (
     <View style={styles.card}>
       <View style={styles.row}>
         <View>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.amount}>₵ {amount}</Text>
+          <Text style={styles.targetDate}>Target Date: {targetDate}</Text>
+          <Text style={styles.EmergencyFund}>
+            Emergency Fund: {emergencyFund}%
+          </Text>
         </View>
         <View style={styles.progress}>
           <CircularProgress progress={percentage} size={85} strokeWidth={12} />
@@ -62,14 +74,27 @@ const styles = StyleSheet.create({
   },
   buttons: {
     position: "relative",
-    bottom: 33,
+    bottom: 40,
     right: -220,
     gap: 10,
     width: 88,
   },
+  targetDate: {
+    position: "absolute",
+    top: -15,
+    left: 10,
+    width: 200,
+    fontFamily: Fonts.body,
+  },
+  EmergencyFund: {
+    position: "relative",
+    top: 101,
+    left: 10,
+    fontFamily: Fonts.body,
+  },
   progress: {
     position: "absolute",
-    top: 17,
+    top: 30,
     right: 120,
   },
 });
