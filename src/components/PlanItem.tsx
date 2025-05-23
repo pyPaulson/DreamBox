@@ -46,10 +46,10 @@ export default function PlanItem({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "transparent",
-    padding: 26,
+    padding: 20,
     borderBottomWidth: 1.5,
     borderBottomColor: AppColors.background_two,
-    paddingBottom: 20,
+    paddingBottom: 10,
   },
   row: {
     flexDirection: "row",

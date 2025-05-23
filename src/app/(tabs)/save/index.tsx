@@ -30,6 +30,13 @@ const SavingScreen = () => {
         icon="my-location"
       />
       <PlanItem
+        title={"Flexi"}
+        description={
+          "Save whenever you like, how much you want. No deadlines, no restrictions, no goal, just save. You can withdraw anytime"
+        }
+        icon="add-box"
+      />
+      <PlanItem
         title={"Emergency"}
         description={
           "Set aside a portion of your funds into a secure emergency fund. Withdraw only during real emergencies."
