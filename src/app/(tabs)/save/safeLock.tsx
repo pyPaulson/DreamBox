@@ -3,9 +3,11 @@ import React, { useState } from "react";
 import GoalCard from "@/components/GoalCard";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
+import SafeLockModal from "@/components/SafeLockModal";
 
 const SaveLock = () => {
   const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
+  const [showModal, setShowModal] = useState(false);  
 
   const data = {
     active: [
@@ -48,11 +50,15 @@ const SaveLock = () => {
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => <GoalCard {...item} />}
         contentContainerStyle={{ paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
       />
 
-      <Pressable style={styles.fab}>
-        <Text style={styles.fabText}>＋</Text>
-      </Pressable>
+      {activeTab === "active" && (
+        <Pressable onPress={() => setShowModal(true)} style={styles.fab}>
+          <Text style={styles.fabText}>＋</Text>
+        </Pressable>
+      )}
+      <SafeLockModal visible={showModal} onClose={() => setShowModal(false)} />
     </View>
   );
 };

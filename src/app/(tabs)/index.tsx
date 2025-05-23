@@ -80,7 +80,7 @@ const HomeScreen = () => {
           <Text style={styles.recentTitle}>Recent Transactions</Text>
           <Text style={styles.seeAll}>See all</Text>
         </View>
-        <ScrollView>
+        <ScrollView showsVerticalScrollIndicator={false}>
           <TransactionItem
             title={"Deposit"}
             subtitle={
