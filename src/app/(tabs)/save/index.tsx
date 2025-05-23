@@ -1,11 +1,11 @@
 import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 import PlanItem from "@/components/PlanItem";
-import { MaterialIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
 import { StatusBar } from "expo-status-bar";
+import { router } from "expo-router";
 
 const SavingScreen = () => {
   return (
@@ -18,6 +18,9 @@ const SavingScreen = () => {
           "Discipline your saving habits by locking your funds for a specific time. You won’t be able to withdraw until your lock period ends"
         }
         icon="lock-outline"
+        onPress={() => {
+          router.push("./save/safeLock");
+        }}
       />
       <PlanItem
         title={"MyGoal"}
