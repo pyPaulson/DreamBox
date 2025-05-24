@@ -145,7 +145,6 @@ const styles = StyleSheet.create({
   topSection: {
     flex: 1.2,
     paddingTop: 60,
-    paddingLeft: 30,
   },
   topBar: {
     marginTop: 10,
@@ -154,11 +153,12 @@ const styles = StyleSheet.create({
   },
   greetingsIcon: {
     marginTop: 4,
+    marginLeft: 34,
   },
   greetingsText: {
     position: "absolute",
     top: 5,
-    left: 23,
+    left: 59,
     color: AppColors.text_three,
     fontSize: 15,
     fontFamily: Fonts.body,
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 5,
     marginTop: 80,
-    paddingHorizontal: 40,
+    paddingHorizontal: 70,
   },
 
   bottomSection: {

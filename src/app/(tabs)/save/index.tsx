@@ -45,6 +45,9 @@ const SavingScreen = () => {
           "Set aside a portion of your funds into a secure emergency fund. Withdraw only during real emergencies."
         }
         icon="emergency"
+        onPress={() => {
+          router.push("./save/emergency");
+        }}  
       />
     </SafeAreaView>
   );

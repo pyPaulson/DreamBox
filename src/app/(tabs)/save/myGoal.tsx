@@ -5,7 +5,7 @@ import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
 import SafeLockModal from "@/components/Modal";
 
-const SaveLock = () => {
+const GoalScreen = () => {
   const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
   const [showModal, setShowModal] = useState(false);
   const [goals, setGoals] = useState({
@@ -90,7 +90,7 @@ const SaveLock = () => {
   );
 };
 
-export default SaveLock;
+export default GoalScreen;
 
 const styles = StyleSheet.create({
   container: {
