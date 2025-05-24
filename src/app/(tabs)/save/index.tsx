@@ -38,6 +38,9 @@ const SavingScreen = () => {
           "Save whenever you like, how much you want. No deadlines, no restrictions, no goal, just save. You can withdraw anytime"
         }
         icon="add-box"
+        onPress={() => {
+          router.push("./save/flexi");
+        }}
       />
       <PlanItem
         title={"Emergency"}
@@ -47,7 +50,7 @@ const SavingScreen = () => {
         icon="emergency"
         onPress={() => {
           router.push("./save/emergency");
-        }}  
+        }}
       />
     </SafeAreaView>
   );

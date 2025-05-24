@@ -11,7 +11,7 @@ const EmergencyScreen = () => {
     <View style={styles.container}>
       <View style={styles.topContainer}>
         <View style={styles.amountSec}>
-          <Text style={styles.amountLabel}>Emergency Plan</Text>
+          <Text style={styles.amountLabel}>Flexi Savings</Text>
           <View style={styles.amountRow}>
             <Text style={styles.cedi}>₵</Text>
             <Text style={styles.amount}>100</Text>
@@ -22,14 +22,15 @@ const EmergencyScreen = () => {
               color="#fff"
             />
           </View>
-          <View style={styles.btn}>
+          <View style={styles.buttonRow}>
+            <TransactionButton title={"Fund"} onPress={() => {}} />
             <TransactionButton title={"Withdraw"} onPress={() => {}} />
           </View>
         </View>
       </View>
       <View style={styles.bottomContainer}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          <Text style={styles.emergencyTitle}>Emergency Fund</Text>
+          <Text style={styles.emergencyTitle}>Flexi Plan</Text>
           <Text style={styles.emergencyText}>
             An emergency fund is a savings account that is set aside to cover
             unexpected expenses or financial emergencies. It is typically used
@@ -37,7 +38,6 @@ const EmergencyScreen = () => {
             an emergency fund is to provide a financial safety net that can help
             you avoid going into debt when unexpected expenses arise.{" "}
           </Text>
-
           <View style={styles.recentRow}>
             <Text style={styles.recentTitle}>Recent Transactions</Text>
             <Text style={styles.seeAll}>See all</Text>
@@ -142,10 +142,11 @@ const styles = StyleSheet.create({
     top: 8,
     left: 90,
   },
-  btn: {
-    marginTop: 70,
-    width: "100%",
-    alignItems: "center",
+  buttonRow: {
+    flexDirection: "row",
+    gap: 5,
+    marginTop: 80,
+    paddingHorizontal: 70,
   },
   bottomContainer: {
     flex: 3.5,
