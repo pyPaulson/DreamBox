@@ -20,9 +20,16 @@ import Fonts from "@/constants/Fonts";
 type Props = {
   visible: boolean;
   onClose: () => void;
+  onCreateGoal: (goal: {
+    title: string;
+    amount: number;
+    percentage: number;
+    emergencyFund?: number;
+    targetDate: string;
+  }) => void;
 };
 
-const SafeLockModal = ({ visible, onClose }: Props) => {
+const SafeLockModal = ({ visible, onClose, onCreateGoal }: Props) => {
   const [planName, setPlanName] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(new Date());
@@ -144,7 +151,33 @@ const SafeLockModal = ({ visible, onClose }: Props) => {
                 </Text>
               </View>
 
-              <FormButton title="Create SafeLock" onPress={() => {}} />
+              <FormButton
+                title="Create SafeLock"
+                onPress={() => {
+                  if (!planName || !amount || !confirmed) return;
+
+                  const newGoal = {
+                    title: planName,
+                    amount: parseFloat(amount),
+                    percentage: 0, // Start at 0 or let user input this if needed
+                    emergencyFund: emergencyToggle
+                      ? parseInt(percentage)
+                      : undefined,
+                    targetDate: date.toDateString(),
+                  };
+
+                  onCreateGoal(newGoal);
+
+                  // Optional: reset form fields
+                  setPlanName("");
+                  setAmount("");
+                  setDate(new Date());
+                  setEmergencyToggle(false);
+                  setConfirmed(false);
+                  setShowDropdown(false);
+                  setPercentage("10%");
+                }}
+              />
 
               <Pressable onPress={onClose} style={styles.cancelBtn}>
                 <Text style={styles.cancelText}>Cancel</Text>

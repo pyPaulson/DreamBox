@@ -7,20 +7,41 @@ import SafeLockModal from "@/components/SafeLockModal";
 
 const SaveLock = () => {
   const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
-  const [showModal, setShowModal] = useState(false);  
-
-  const data = {
+  const [showModal, setShowModal] = useState(false);
+  const [goals, setGoals] = useState({
     active: [
-      { title: "Rent", amount: 4000, percentage: 47, targetDate:"Fri May 23 2025", emergencyFund: 10 },
-      { title: "Laptop", amount: 890, percentage: 17, targetDate:"Fri May 23 2025", emergencyFund: 10 },
-      { title: "Laptop", amount: 6900, percentage: 77, targetDate:"Fri May 23 2025", emergencyFund: 10 },
-      { title: "Laptop", amount: 600, percentage: 37, targetDate:"Fri May 23 2025", },
+      {
+        title: "Rent",
+        amount: 4000,
+        percentage: 47,
+        targetDate: "Fri May 23 2025",
+        emergencyFund: 10,
+      },
+      {
+        title: "Laptop",
+        amount: 890,
+        percentage: 17,
+        targetDate: "Fri May 23 2025",
+        emergencyFund: 10,
+      },
     ],
     completed: [
-      { title: "Phone", amount: 2000, percentage: 100, targetDate:"Fri May 23 2025", emergencyFund: 10 },
-      { title: "Bills", amount: 1200, percentage: 100, targetDate:"Fri May 23 2025", emergencyFund: 10 },
+      {
+        title: "Phone",
+        amount: 2000,
+        percentage: 100,
+        targetDate: "Fri May 23 2025",
+        emergencyFund: 10,
+      },
+      {
+        title: "Bills",
+        amount: 1200,
+        percentage: 100,
+        targetDate: "Fri May 23 2025",
+        emergencyFund: 10,
+      },
     ],
-  };
+  });
 
   return (
     <View style={styles.container}>
@@ -46,7 +67,7 @@ const SaveLock = () => {
       </View>
 
       <FlatList
-        data={data[activeTab]}
+        data={goals[activeTab]} // now uses dynamic state
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => <GoalCard {...item} />}
         contentContainerStyle={{ paddingBottom: 100 }}
@@ -58,10 +79,31 @@ const SaveLock = () => {
           <Text style={styles.fabText}>＋</Text>
         </Pressable>
       )}
-      <SafeLockModal visible={showModal} onClose={() => setShowModal(false)} />
+      <SafeLockModal
+        visible={showModal}
+        onClose={() => setShowModal(false)}
+        onCreateGoal={(newGoal) => {
+          setGoals((prev) => ({
+            ...prev,
+            active: [
+              ...prev.active,
+              {
+                ...newGoal,
+                emergencyFund:
+                  newGoal.emergencyFund !== undefined
+                    ? newGoal.emergencyFund
+                    : 0,
+              },
+            ],
+          }));
+          setShowModal(false);
+        }}
+      />
     </View>
   );
 };
+
+export default SaveLock;
 
 const styles = StyleSheet.create({
   container: {
@@ -118,5 +160,3 @@ const styles = StyleSheet.create({
     lineHeight: 32,
   },
 });
-
-export default SaveLock;
