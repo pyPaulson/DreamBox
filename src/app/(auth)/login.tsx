@@ -22,6 +22,7 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = () => {
+    router.push("/(tabs)");
     // You can add validation or API logic here
     console.log("Logging in with:", email, password);
   };

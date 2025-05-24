@@ -27,9 +27,10 @@ type Props = {
     emergencyFund?: number;
     targetDate: string;
   }) => void;
+  showEmergencyOptions?: boolean;
 };
 
-const SafeLockModal = ({ visible, onClose, onCreateGoal }: Props) => {
+const SafeLockModal = ({ visible, onClose, onCreateGoal, showEmergencyOptions }: Props) => {
   const [planName, setPlanName] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(new Date());
@@ -48,7 +49,7 @@ const SafeLockModal = ({ visible, onClose, onCreateGoal }: Props) => {
         >
           <View style={styles.modalContainer}>
             <ScrollView contentContainerStyle={styles.scrollContent}>
-              <Text style={styles.title}>Create a SafeLock Plan</Text>
+              <Text style={styles.title}>Create a Plan</Text>
 
               <FormInput
                 label="Give your plan a name"
@@ -93,49 +94,53 @@ const SafeLockModal = ({ visible, onClose, onCreateGoal }: Props) => {
                 />
               )}
 
-              <View style={styles.toggleRow}>
-                <Text style={styles.toggleLabel}>
-                  Want to save a little for emergencies?
-                </Text>
-                <ToggleSwitch
-                  value={emergencyToggle}
-                  onValueChange={setEmergencyToggle}
-                />
-              </View>
-
-              {emergencyToggle && (
-                <View style={styles.dropdownContainer}>
-                  <Text style={styles.dropdownLabel}>
-                    What percentage would you like to save?
-                  </Text>
-                  <Pressable
-                    style={styles.dropdown}
-                    onPress={() => setShowDropdown(!showDropdown)}
-                  >
-                    <Text style={styles.dropdownText}>{percentage}</Text>
-                    <Ionicons
-                      name={showDropdown ? "chevron-up" : "chevron-down"}
-                      size={20}
-                      color={AppColors.grey}
+              {showEmergencyOptions && (
+                <>
+                  <View style={styles.toggleRow}>
+                    <Text style={styles.toggleLabel}>
+                      Want to save a little for emergencies?
+                    </Text>
+                    <ToggleSwitch
+                      value={emergencyToggle}
+                      onValueChange={setEmergencyToggle}
                     />
-                  </Pressable>
-                  {showDropdown && (
-                    <View style={styles.dropdownOptions}>
-                      {["10%", "20%", "30%"].map((option) => (
-                        <Pressable
-                          key={option}
-                          onPress={() => {
-                            setPercentage(option);
-                            setShowDropdown(false);
-                          }}
-                          style={styles.dropdownItem}
-                        >
-                          <Text style={styles.dropdownText}>{option}</Text>
-                        </Pressable>
-                      ))}
+                  </View>
+
+                  {emergencyToggle && (
+                    <View style={styles.dropdownContainer}>
+                      <Text style={styles.dropdownLabel}>
+                        What percentage would you like to save?
+                      </Text>
+                      <Pressable
+                        style={styles.dropdown}
+                        onPress={() => setShowDropdown(!showDropdown)}
+                      >
+                        <Text style={styles.dropdownText}>{percentage}</Text>
+                        <Ionicons
+                          name={showDropdown ? "chevron-up" : "chevron-down"}
+                          size={20}
+                          color={AppColors.grey}
+                        />
+                      </Pressable>
+                      {showDropdown && (
+                        <View style={styles.dropdownOptions}>
+                          {["10%", "20%", "30%"].map((option) => (
+                            <Pressable
+                              key={option}
+                              onPress={() => {
+                                setPercentage(option);
+                                setShowDropdown(false);
+                              }}
+                              style={styles.dropdownItem}
+                            >
+                              <Text style={styles.dropdownText}>{option}</Text>
+                            </Pressable>
+                          ))}
+                        </View>
+                      )}
                     </View>
                   )}
-                </View>
+                </>
               )}
 
               <View style={styles.checkboxRow}>
@@ -152,7 +157,7 @@ const SafeLockModal = ({ visible, onClose, onCreateGoal }: Props) => {
               </View>
 
               <FormButton
-                title="Create SafeLock"
+                title="Create Plan"
                 onPress={() => {
                   if (!planName || !amount || !confirmed) return;
 

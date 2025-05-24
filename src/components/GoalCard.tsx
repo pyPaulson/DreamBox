@@ -1,4 +1,3 @@
-// components/GoalCard.tsx
 import { View, Text, StyleSheet } from "react-native";
 import React from "react";
 import CircularProgress from "./CircularProgress";
@@ -11,7 +10,7 @@ interface Props {
   amount: number;
   percentage: number;
   emergencyFund?: number;
-  targetDate: string; 
+  targetDate?: string;
 }
 
 const GoalCard = ({
@@ -27,10 +26,15 @@ const GoalCard = ({
         <View>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.amount}>₵ {amount}</Text>
-          <Text style={styles.targetDate}>Target Date: {targetDate}</Text>
-          <Text style={styles.EmergencyFund}>
-            Emergency Fund: {emergencyFund}%
-          </Text>
+          {targetDate && (
+            <Text style={styles.targetDate}>Target Date: {targetDate}</Text>
+          )}
+
+          {typeof emergencyFund === "number" && (
+            <Text style={styles.EmergencyFund}>
+              Emergency Fund: {emergencyFund}%
+            </Text>
+          )}
         </View>
         <View style={styles.progress}>
           <CircularProgress progress={percentage} size={85} strokeWidth={12} />
@@ -48,9 +52,8 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: AppColors.background_two,
     borderRadius: 12,
-    padding: 30,
+    padding: 20,
     marginVertical: 10,
-    gap: 10,
   },
   row: {
     flexDirection: "row",
@@ -58,45 +61,33 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: {
-    position: "relative",
-    top: 40,
-    left: 10,
     fontSize: 18,
     fontFamily: Fonts.bodyBold,
+    marginBottom: 4,
   },
   amount: {
-    position: "relative",
-    top: 40,
-    left: 10,
     fontSize: 16,
-    marginTop: 4,
     fontFamily: Fonts.bodyBold,
-  },
-  buttons: {
-    position: "relative",
-    bottom: 40,
-    right: -220,
-    gap: 10,
-    width: 88,
+    marginBottom: 4,
   },
   targetDate: {
-    position: "absolute",
-    top: -15,
-    left: 10,
-    width: 200,
     fontFamily: Fonts.body,
+    marginBottom: 4,
   },
   EmergencyFund: {
-    position: "relative",
-    top: 101,
-    left: 10,
     fontFamily: Fonts.body,
+    marginBottom: 4,
   },
   progress: {
-    position: "absolute",
-    top: 30,
-    right: 120,
+    marginRight: 48,
+  },
+  buttons: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 10,
+    marginTop: 20,
   },
 });
+
 
 export default GoalCard;

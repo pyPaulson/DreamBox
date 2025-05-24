@@ -28,6 +28,9 @@ const SavingScreen = () => {
           "Set a personal saving goal with a target amount and deadline like rent, business, or phone."
         }
         icon="my-location"
+        onPress={() => {
+          router.push("./save/myGoal");
+        }}
       />
       <PlanItem
         title={"Flexi"}

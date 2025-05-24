@@ -12,17 +12,13 @@ const SaveLock = () => {
     active: [
       {
         title: "Rent",
-        amount: 4000,
+        amount: 400,
         percentage: 47,
-        targetDate: "Fri May 23 2025",
-        emergencyFund: 10,
       },
       {
         title: "Laptop",
         amount: 890,
         percentage: 17,
-        targetDate: "Fri May 23 2025",
-        emergencyFund: 10,
       },
     ],
     completed: [
@@ -45,7 +41,7 @@ const SaveLock = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>SafeLock</Text>
+      <Text style={styles.header}>MyGoal</Text>
       <View style={styles.tabSwitch}>
         {["active", "completed"].map((tab) => (
           <Pressable
@@ -85,20 +81,10 @@ const SaveLock = () => {
         onCreateGoal={(newGoal) => {
           setGoals((prev) => ({
             ...prev,
-            active: [
-              ...prev.active,
-              {
-                ...newGoal,
-                emergencyFund:
-                  newGoal.emergencyFund !== undefined
-                    ? newGoal.emergencyFund
-                    : 0,
-              },
-            ],
+            active: [...prev.active, newGoal],
           }));
           setShowModal(false);
         }}
-        showEmergencyOptions={true}
       />
     </View>
   );
