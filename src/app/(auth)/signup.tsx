@@ -3,9 +3,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
-  Platform,
-  KeyboardAvoidingView,
-  ScrollView,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useState } from "react";
@@ -93,7 +90,7 @@ export default function SignupScreen() {
           }}
           setItems={setGenderItems}
           placeholder="Select Gender"
-          placeholderStyle={{ color: AppColors.grey_two }} // Grey placeholder
+          placeholderStyle={{ color: AppColors.grey_two }} 
           textStyle={{ color: AppColors.grey_two }}
           style={styles.dropdown}
           dropDownContainerStyle={styles.dropdownMenu}
