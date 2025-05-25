@@ -1,12 +1,11 @@
 import {
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
-  Platform,
   View,
-  Modal,
-  Pressable,
+  Platform,
+  KeyboardAvoidingView,
+  ScrollView,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useState } from "react";
@@ -17,6 +16,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { format } from "date-fns";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
+import DropDownPicker from "react-native-dropdown-picker";
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -32,25 +32,33 @@ export default function SignupScreen() {
   });
 
   const [agree, setAgree] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showDateModal, setShowDateModal] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showGenderDropdown, setShowGenderDropdown] = useState(false);
+
+  // Gender Dropdown Picker states
+  const [genderOpen, setGenderOpen] = useState(false);
+  const [genderValue, setGenderValue] = useState("");
+  const [genderItems, setGenderItems] = useState([
+    { label: "Male", value: "Male" },
+    { label: "Female", value: "Female" },
+    { label: "Other", value: "Other" },
+  ]);
 
   const handleChange = (key: string, value: string) => {
     setForm({ ...form, [key]: value });
   };
 
   const handleDateChange = (_: any, selectedDate?: Date) => {
-    setShowDatePicker(false); // Close the picker
     if (selectedDate) {
-      handleChange("dob", format(selectedDate, "yyyy-MM-dd")); // Format the date
+      handleChange("dob", format(selectedDate, "yyyy-MM-dd"));
     }
+    setShowDateModal(false);
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Back Button Icon at exact top-left */}
+    <View style={styles.container}>
+      {/* Back Button */}
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Feather name="arrow-left" size={24} color="#000" />
       </TouchableOpacity>
@@ -60,7 +68,6 @@ export default function SignupScreen() {
         Ensure you enter correct details. You won’t be able to change this once
         you submit
       </Text>
-
       <FormInput
         placeholder="First Name"
         value={form.firstName}
@@ -73,59 +80,44 @@ export default function SignupScreen() {
       />
 
       {/* Gender Dropdown */}
-      <TouchableOpacity
-        onPress={() => setShowGenderDropdown(true)}
-        activeOpacity={0.8}
-      >
-        <FormInput
-          placeholder="Gender"
-          value={form.gender}
-          onChangeText={() => {}}
-          icon={<Feather name="chevron-down" size={20} color="#999" />}
-          editable={false}
+      <View style={styles.dropdownContainer}>
+        <DropDownPicker
+          open={genderOpen}
+          value={genderValue}
+          items={genderItems}
+          setOpen={setGenderOpen}
+          setValue={(callback) => {
+            const value = callback(genderValue);
+            setGenderValue(value);
+            handleChange("gender", value);
+          }}
+          setItems={setGenderItems}
+          placeholder="Select Gender"
+          placeholderStyle={{ color: AppColors.grey_two }} // Grey placeholder
+          textStyle={{ color: AppColors.grey_two }}
+          style={styles.dropdown}
+          dropDownContainerStyle={styles.dropdownMenu}
+          zIndex={1000}
         />
-      </TouchableOpacity>
-      <Modal
-        visible={showGenderDropdown}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowGenderDropdown(false)}
-      >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setShowGenderDropdown(false)}
-        >
-          <View style={styles.dropdown}>
-            {["Male", "Female", "Other"].map((option) => (
-              <TouchableOpacity
-                key={option}
-                onPress={() => {
-                  handleChange("gender", option);
-                  setShowGenderDropdown(false);
-                }}
-              >
-                <Text style={styles.dropdownItem}>{option}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </Pressable>
-      </Modal>
+      </View>
 
-      {/* Date Picker */}
-      <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+      {/* Date of Birth Picker */}
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => setShowDateModal(true)}
+      >
         <FormInput
           placeholder="Date of Birth"
           value={form.dob}
-          onChangeText={() => {}}
-          icon={<Feather name="calendar" size={20} color="#999" />}
           editable={false}
+          icon={<Feather name="calendar" size={20} color="#999" />}
         />
       </TouchableOpacity>
-      {showDatePicker && (
+      {showDateModal && (
         <DateTimePicker
           value={form.dob ? new Date(form.dob) : new Date()}
           mode="date"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
+          display="default"
           onChange={handleDateChange}
           maximumDate={new Date()}
         />
@@ -134,7 +126,7 @@ export default function SignupScreen() {
       <FormInput
         placeholder="Phone Number"
         value={form.phone}
-        keyboardType="phone-pad" 
+        keyboardType="phone-pad"
         onChangeText={(text) => handleChange("phone", text)}
       />
       <FormInput
@@ -177,11 +169,11 @@ export default function SignupScreen() {
         }
       />
 
-      {/* Checkbox */}
+      {/* Agreement Checkbox */}
       <TouchableOpacity
         style={styles.checkboxContainer}
-        onPress={() => setAgree(!agree)}
         activeOpacity={0.8}
+        onPress={() => setAgree(!agree)}
       >
         <Feather
           name={agree ? "check-square" : "square"}
@@ -199,7 +191,7 @@ export default function SignupScreen() {
           router.push("./verification");
         }}
       />
-    </ScrollView>
+    </View>
   );
 }
 
@@ -232,37 +224,29 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.body,
     paddingHorizontal: 10,
   },
+  dropdownContainer: {
+    marginBottom: 16,
+    zIndex: 1000, // Make sure it stacks above other elements
+  },
+  dropdown: {
+    borderColor: AppColors.grey_two,
+    backgroundColor: AppColors.text_three,
+  },
+  dropdownMenu: {
+    borderColor: AppColors.grey_two,
+    backgroundColor: AppColors.text_three,
+    
+  },
   checkboxContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
     marginTop: 4,
+    marginBottom: 16,
   },
   checkboxText: {
     marginLeft: 8,
     fontFamily: Fonts.body,
     fontSize: 13,
     color: "#333",
-  },
-  dropdown: {
-    backgroundColor: AppColors.background_one,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 6,
-    margin: 20,
-    padding: 10,
-  },
-  dropdownItem: {
-    padding: 12,
-    fontFamily: Fonts.body,
-    fontSize: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)", 
   },
 });
