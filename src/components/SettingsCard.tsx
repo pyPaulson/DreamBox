@@ -5,7 +5,7 @@ import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
 
 type SettingCardProps = {
-  icon: ReactNode;
+  icon?: ReactNode;
   label: string;
   rightElement?: ReactNode;
   onPress?: () => void;
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: AppColors.background_one,
+    // backgroundColor: AppColors.background_one,
   },
   left: {
     flexDirection: "row",

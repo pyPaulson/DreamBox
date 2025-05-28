@@ -1,4 +1,3 @@
-// components/ToggleSwitch.tsx
 import { View, Switch } from "react-native";
 import { useState, useEffect } from "react";
 import AppColors from "@/constants/AppColors";

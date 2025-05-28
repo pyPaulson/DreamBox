@@ -1,4 +1,3 @@
-// components/TransparentButton.tsx
 import React from "react";
 import {
   TouchableOpacity,
@@ -26,7 +25,10 @@ export default function TransactionButton({
   width = 140,
 }: TransparentButtonProps) {
   return (
-    <TouchableOpacity style={[styles.button, buttonStyle, { width }]} onPress={onPress}>
+    <TouchableOpacity
+      style={[styles.button, buttonStyle, { width }]}
+      onPress={onPress}
+    >
       <Text style={[styles.text, textStyle]}>{title}</Text>
     </TouchableOpacity>
   );

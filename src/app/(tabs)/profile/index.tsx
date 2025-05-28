@@ -5,6 +5,7 @@ import Fonts from "@/constants/Fonts";
 import SettingCard from "@/components/SettingsCard";
 import { MaterialIcons, FontAwesome5, Feather } from "@expo/vector-icons";
 import ToggleSwitch from "@/components/ToggleSwitch";
+import { router } from "expo-router";
 
 const ProfileScreen = () => {
   return (
@@ -22,6 +23,9 @@ const ProfileScreen = () => {
         <SettingCard
           icon={<MaterialIcons name="person" size={22} color="#023e8a" />}
           label="Account Details"
+          onPress={() => {
+            router.push("/(tabs)/profile/account-details")
+          }}
         />
         <SettingCard
           icon={<FontAwesome5 name="id-card" size={20} color="#023e8a" />}
@@ -35,10 +39,16 @@ const ProfileScreen = () => {
         <SettingCard
           icon={<Feather name="file-text" size={20} color="#023e8a" />}
           label="Account Statement"
+          onPress={() => {
+            router.push("/(tabs)/profile/account-statement")
+          }}
         />
         <SettingCard
           icon={<MaterialIcons name="security" size={20} color="#023e8a" />}
           label="Security"
+          onPress={() => {
+            router.push("/(tabs)/profile/security")
+          }}
         />
         <SettingCard
           icon={<Feather name="moon" size={20} color="#023e8a" />}
@@ -48,6 +58,9 @@ const ProfileScreen = () => {
         <SettingCard
           icon={<MaterialIcons name="privacy-tip" size={20} color="#023e8a" />}
           label="Privacy Policy"
+          onPress={() => {
+            router.push("/(tabs)/profile/privacy")
+          }}
         />
         <SettingCard
           icon={<MaterialIcons name="logout" size={20} color="red" />}

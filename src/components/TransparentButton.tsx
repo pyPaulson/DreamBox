@@ -1,4 +1,3 @@
-// components/TransparentButton.tsx
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
 import React from "react";
 import AppColors from "@/constants/AppColors";

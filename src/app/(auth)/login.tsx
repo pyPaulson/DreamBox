@@ -65,7 +65,7 @@ export default function LoginScreen() {
             />
           }
         />
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => {}}>
           <Text style={styles.forgot}>Forgot Password?</Text>
         </TouchableOpacity>
 

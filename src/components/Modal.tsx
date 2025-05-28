@@ -30,7 +30,12 @@ type Props = {
   showEmergencyOptions?: boolean;
 };
 
-const SafeLockModal = ({ visible, onClose, onCreateGoal, showEmergencyOptions }: Props) => {
+const SafeLockModal = ({
+  visible,
+  onClose,
+  onCreateGoal,
+  showEmergencyOptions,
+}: Props) => {
   const [planName, setPlanName] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(new Date());
