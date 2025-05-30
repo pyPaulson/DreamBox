@@ -4,7 +4,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  ScrollView,
 } from "react-native";
 import LoginFormInput from "@/components/FormInput";
 import FormButton from "@/components/FormButton";
