@@ -39,5 +39,3 @@ const styles = StyleSheet.create({
 });
 
 // changes
-// changes
-// changes
