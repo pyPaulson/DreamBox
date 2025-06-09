@@ -8,6 +8,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import TransactionButton from "@/components/TransactionBtn";
 import ActionCard from "@/components/ActionCard";
 import TransactionItem from "@/components/TransactionItem";
+import { router } from "expo-router";
 
 const HomeScreen = () => {
   return (
@@ -56,10 +57,16 @@ const HomeScreen = () => {
               <MaterialIcons name="lock-outline" size={24} color="#0D269F" />
             }
             label={"SafeLock"}
+            onPress={() => {
+              router.push("/(tabs)/save/safeLock")
+            }}
           />
           <ActionCard
             icon={<Feather name="target" size={24} color="#0D269F" />}
             label={"MyGoal"}
+            onPress={() => {
+              router.push("/(tabs)/save/myGoal")
+            }}
           />
           <ActionCard
             icon={

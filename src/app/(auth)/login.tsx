@@ -1,9 +1,12 @@
 import {
+  KeyboardAvoidingView,
+  ScrollView,
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Image,
+  Platform,
 } from "react-native";
 import LoginFormInput from "@/components/FormInput";
 import FormButton from "@/components/FormButton";
@@ -21,65 +24,70 @@ export default function LoginScreen() {
 
   const handleLogin = () => {
     router.push("/(tabs)");
-    // You can add validation or API logic here
     console.log("Logging in with:", email, password);
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.topSection}>
-        <Image
-          source={require("@/assets/images/LoginLogo.png")} // replace with your logo path
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Text style={styles.welcome}>Good to see you!</Text>
-        <Text style={styles.subtext}>Let's build your savings!..</Text>
-      </View>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+    >
+      <View style={styles.container}>
+        <View style={styles.topSection}>
+          <Image
+            source={require("@/assets/images/LoginLogo.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.welcome}>Good to see you!</Text>
+          <Text style={styles.subtext}>Let's build your savings!..</Text>
+        </View>
 
-      <View style={styles.formContainer}>
-        <Text style={styles.loginPrompt}>
-          Login into your account to continue
-        </Text>
-        <LoginFormInput
-          label="Email Address"
-          placeholder="Enter your email"
-          value={email}
-          onChangeText={setEmail}
-          icon={<Feather name="mail" size={25} color="#636363" />}
-        />
-        <LoginFormInput
-          label="Password"
-          placeholder="Enter Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          icon={
-            <Feather
-              name={showPassword ? "eye-off" : "eye"}
-              size={24}
-              color="#636363"
-              onPress={() => setShowPassword((prev) => !prev)}
-            />
-          }
-        />
-        <TouchableOpacity onPress={() => {}}>
-          <Text style={styles.forgot}>Forgot Password?</Text>
-        </TouchableOpacity>
-
-        <FormButton title="Login" onPress={handleLogin} />
-
-        <Text style={styles.signupPrompt}>
-          Don’t have an account?{" "}
-          <Text
-            style={styles.signupLink}
-            onPress={() => router.push("../signup")}
-          >
-            Sign up
+        <View style={styles.formContainer}>
+          <Text style={styles.loginPrompt}>
+            Login into your account to continue
           </Text>
-        </Text>
+          <LoginFormInput
+            label="Email Address"
+            placeholder="Enter your email"
+            value={email}
+            onChangeText={setEmail}
+            icon={<Feather name="mail" size={25} color="#636363" />}
+          />
+          <LoginFormInput
+            label="Password"
+            placeholder="Enter Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            icon={
+              <Feather
+                name={showPassword ? "eye-off" : "eye"}
+                size={24}
+                color="#636363"
+                onPress={() => setShowPassword((prev) => !prev)}
+              />
+            }
+          />
+          <TouchableOpacity onPress={() => {}}>
+            <Text style={styles.forgot}>Forgot Password?</Text>
+          </TouchableOpacity>
+
+          <FormButton title="Login" onPress={handleLogin} />
+
+          <Text style={styles.signupPrompt}>
+            Don’t have an account?{" "}
+            <Text
+              style={styles.signupLink}
+              onPress={() => router.push("../signup")}
+            >
+              Sign up
+            </Text>
+          </Text>
+        </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -94,7 +102,7 @@ const styles = StyleSheet.create({
   logo: {
     width: 150,
     height: 150,
-    marginBottom: -30,
+    marginBottom: -50,
   },
   welcome: {
     fontSize: 20,

@@ -16,7 +16,7 @@ export default function CreatePinScreen() {
   };
 
   const handleBackspace = () => {
-    setPin((prev) => prev.slice(0, -1));
+    setPin((prev) => prev.slice(0, - 1));
   };
 
   if (pin.length === 4) {

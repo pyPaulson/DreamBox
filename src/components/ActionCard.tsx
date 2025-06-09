@@ -1,19 +1,21 @@
-import { View, Text, StyleSheet } from "react-native";
-// import { Ionicons } from "@expo/vector-icons";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
 
 interface ActionCardProps {
-  icon: any;
+  icon: React.ReactNode; // more accurate than `any`
   label: string;
+  onPress?: () => void; // optional press handler
 }
 
-export default function ActionCard({ icon, label }: ActionCardProps) {
+export default function ActionCard({ icon, label, onPress }: ActionCardProps) {
+  const Container = onPress ? TouchableOpacity : View;
+
   return (
-    <View style={styles.card}>
+    <Container style={styles.card} onPress={onPress}>
       {icon}
       <Text style={styles.label}>{label}</Text>
-    </View>
+    </Container>
   );
 }
 
@@ -37,5 +39,3 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bodyBold,
   },
 });
-
-// changes
