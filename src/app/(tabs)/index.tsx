@@ -1,5 +1,5 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import React from "react";
+import React, { useState } from "react";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Feather from "@expo/vector-icons/Feather";
 import AppColors from "@/constants/AppColors";
@@ -8,9 +8,12 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import TransactionButton from "@/components/TransactionBtn";
 import ActionCard from "@/components/ActionCard";
 import TransactionItem from "@/components/TransactionItem";
+import Deposit from "@/components/Deposit"
 import { router } from "expo-router";
 
 const HomeScreen = () => {
+  const [isFundModalVisible, setFundModalVisible] = useState(false);
+
   return (
     <View style={styles.container}>
       <View style={styles.topSection}>
@@ -45,7 +48,10 @@ const HomeScreen = () => {
           </View>
         </View>
         <View style={styles.buttonRow}>
-          <TransactionButton title={"Fund"} onPress={() => {}} />
+          <TransactionButton
+            title={"Fund"}
+            onPress={() => setFundModalVisible(true)}
+          />
           <TransactionButton title={"Withdraw"} onPress={() => {}} />
         </View>
       </View>
@@ -58,14 +64,14 @@ const HomeScreen = () => {
             }
             label={"SafeLock"}
             onPress={() => {
-              router.push("/(tabs)/save/safeLock")
+              router.push("/(tabs)/save/safeLock");
             }}
           />
           <ActionCard
             icon={<Feather name="target" size={24} color="#0D269F" />}
             label={"MyGoal"}
             onPress={() => {
-              router.push("/(tabs)/save/myGoal")
+              router.push("/(tabs)/save/myGoal");
             }}
           />
           <ActionCard
@@ -138,6 +144,10 @@ const HomeScreen = () => {
           />
         </ScrollView>
       </View>
+      <Deposit
+        visible={isFundModalVisible}
+        onClose={() => setFundModalVisible(false)}
+      />
     </View>
   );
 };
