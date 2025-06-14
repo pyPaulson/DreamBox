@@ -1,9 +1,11 @@
-import { View, Text, StyleSheet, Pressable, FlatList } from "react-native";
+import { View, Text, StyleSheet, Pressable, FlatList, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
 import GoalCard from "@/components/GoalCard";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
 import SafeLockModal from "@/components/Modal";
+import { Feather } from "@expo/vector-icons";
+import { router } from "expo-router";
 
 const GoalScreen = () => {
   const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
@@ -41,6 +43,9 @@ const GoalScreen = () => {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <Feather name="arrow-left" size={24} color="#000" />
+      </TouchableOpacity>
       <Text style={styles.header}>MyGoal</Text>
       <View style={styles.tabSwitch}>
         {["active", "completed"].map((tab) => (
@@ -97,6 +102,12 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: AppColors.background_one,
+  },
+  backButton: {
+    position: "absolute",
+    top: 60,
+    left: 27,
+    zIndex: 10,
   },
   header: {
     paddingTop: 40,

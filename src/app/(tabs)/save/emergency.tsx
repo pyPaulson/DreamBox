@@ -1,15 +1,28 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import React from "react";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
 import TransactionItem from "@/components/TransactionItem";
-import { Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import TransactionButton from "@/components/TransactionBtn";
+import { router } from "expo-router";
 
 const EmergencyScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.topContainer}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Feather name="arrow-left" size={24} color="#fff" />
+        </TouchableOpacity>
         <View style={styles.amountSec}>
           <Text style={styles.amountLabel}>Emergency Plan</Text>
           <View style={styles.amountRow}>
@@ -108,8 +121,14 @@ const styles = StyleSheet.create({
     flex: 1.2,
     paddingTop: 60,
   },
+  backButton: {
+    position: "absolute",
+    top: 74,
+    left: 27,
+    zIndex: 10,
+  },
   amountSec: {
-    marginTop: 30,
+    marginTop: 15,
     alignItems: "center",
   },
   amountLabel: {
