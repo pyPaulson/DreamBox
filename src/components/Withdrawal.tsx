@@ -7,9 +7,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   Pressable,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AppColors from "@/constants/AppColors";
@@ -18,17 +18,17 @@ import FormButton from "./FormButton";
 
 const NETWORKS = ["MTN", "Tel", "AT"];
 
-const DepositModal = ({
-  visible,
-  onClose,
-}: {
+type WithdrawModalProps = {
   visible: boolean;
   onClose: () => void;
-}) => {
+};
+
+const WithdrawModal = ({ visible, onClose }: WithdrawModalProps) => {
   const [selectedNetwork, setSelectedNetwork] = useState("MTN");
   const [showDropdown, setShowDropdown] = useState(false);
   const [mobileNumber, setMobileNumber] = useState("");
   const [amount, setAmount] = useState("");
+  const [pin, setPin] = useState("");
 
   const handleSelectNetwork = (network: string) => {
     setSelectedNetwork(network);
@@ -43,12 +43,14 @@ const DepositModal = ({
           style={styles.keyboardView}
         >
           <View style={styles.modalContainer}>
-            <ScrollView contentContainerStyle={styles.scrollContent}>
-              <Text style={styles.title}>Pay With Mobile Money</Text>
+            <ScrollView
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <Text style={styles.title}>Withdraw to Mobile Money</Text>
 
+              {/* Network Dropdown */}
               <Text style={styles.label}>Select Network Provider</Text>
-
-              {/* Dropdown */}
               <Pressable
                 style={styles.dropdown}
                 onPress={() => setShowDropdown(!showDropdown)}
@@ -75,12 +77,12 @@ const DepositModal = ({
                 </View>
               )}
 
-              {/* Network buttons */}
+              {/* Pressable Cards */}
               <View style={styles.networkOptions}>
                 {NETWORKS.map((network) => (
                   <TouchableOpacity
                     key={network}
-                    onPress={() => setSelectedNetwork(network)}
+                    onPress={() => handleSelectNetwork(network)}
                     style={[
                       styles.networkBtn,
                       selectedNetwork === network && styles.networkBtnSelected,
@@ -99,7 +101,7 @@ const DepositModal = ({
                 ))}
               </View>
 
-              {/* Mobile Number Input */}
+              {/* Mobile Number */}
               <Text style={styles.label}>Enter Mobile Number</Text>
               <View style={styles.inputWrapper}>
                 <View style={styles.prefixWrapper}>
@@ -108,15 +110,16 @@ const DepositModal = ({
                 <TextInput
                   style={styles.input}
                   placeholder="Enter phone number"
-                  placeholderTextColor="#888"
+                  placeholderTextColor="#999"
                   keyboardType="numeric"
+                  maxLength={9}
                   value={mobileNumber}
                   onChangeText={setMobileNumber}
                 />
               </View>
 
-              {/* Amount Input */}
-              <Text style={styles.label}>Enter Payment Amount</Text>
+              {/* Amount */}
+              <Text style={styles.label}>Enter Withdrawal Amount</Text>
               <View style={styles.inputWrapper}>
                 <View style={styles.prefixWrapper}>
                   <Text style={styles.prefixText}>GHS</Text>
@@ -124,21 +127,43 @@ const DepositModal = ({
                 <TextInput
                   style={styles.input}
                   placeholder="Enter amount"
-                  placeholderTextColor="#888"
+                  placeholderTextColor="#999"
                   keyboardType="numeric"
                   value={amount}
                   onChangeText={setAmount}
                 />
               </View>
 
-              {/* Pay Now Button */}
+              {/* Balance info */}
+              <View style={styles.balanceContainer}>
+                <Text style={styles.balanceText}>
+                  Available Balance: GHS 200.00
+                </Text>
+              </View>
+
+              {/* PIN */}
+              <Text style={styles.label}>Enter PIN</Text>
+              <TextInput
+                style={styles.standaloneInput}
+                placeholder="Enter PIN"
+                placeholderTextColor="#999"
+                secureTextEntry
+                keyboardType="numeric"
+                maxLength={4}
+                value={pin}
+                onChangeText={setPin}
+              />
+
+              {/* Withdraw Button */}
               <FormButton
-                title={"Pay Now"}
+                title="Withdraw"
                 onPress={() => {
-                     console.log("You are paying now");
-                     
+                  // Handle withdrawal here
+                  console.log("Withdraw pressed");
                 }}
               />
+
+              {/* Cancel Button */}
               <Pressable onPress={onClose} style={styles.cancelBtn}>
                 <Text style={styles.cancelText}>Cancel</Text>
               </Pressable>
@@ -150,16 +175,12 @@ const DepositModal = ({
   );
 };
 
-export default DepositModal;
+export default WithdrawModal;
 
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "flex-end",
-  },
-  keyboardView: {
-    flex: 1,
     justifyContent: "flex-end",
   },
   modalContainer: {
@@ -169,8 +190,12 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     padding: 24,
   },
+  keyboardView: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
   scrollContent: {
-    paddingBottom: 20,
+    paddingBottom: 40,
   },
   title: {
     fontSize: 20,
@@ -191,14 +216,14 @@ const styles = StyleSheet.create({
     borderColor: AppColors.grey_two,
     borderRadius: 7,
     paddingHorizontal: 12,
-    paddingVertical: 15,
+    paddingVertical: 18,
     backgroundColor: AppColors.background_one,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
   dropdownText: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: Fonts.body,
     color: AppColors.text_two,
   },
@@ -250,7 +275,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: "center",
     marginBottom: 12,
-    height: 55,
     overflow: "hidden",
   },
   prefixWrapper: {
@@ -260,7 +284,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderTopLeftRadius: 6,
     borderBottomLeftRadius: 6,
-    height: "100%",
+    height: 55,
   },
   prefixText: {
     fontFamily: Fonts.body,
@@ -269,10 +293,35 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    paddingLeft: 10,
     fontFamily: Fonts.body,
     fontSize: 15,
-    height: "100%",
+    paddingVertical: 18,
+    paddingHorizontal: 10,
+  },
+  standaloneInput: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 6,
+    paddingVertical: 18,
+    paddingHorizontal: 12,
+    fontFamily: Fonts.body,
+    fontSize: 15,
+    marginBottom: 12,
+  },
+  balanceContainer: {
+    backgroundColor: "#dbe4ff",
+    paddingVertical: 14,
+    paddingHorizontal: 15,
+    borderTopRightRadius: 4,
+    borderBottomRightRadius: 4,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: AppColors.primary,   
+  },
+  balanceText: {
+    fontFamily: Fonts.body,
+    color: AppColors.primary,
+    fontSize: 13,
   },
   cancelBtn: {
     alignItems: "center",

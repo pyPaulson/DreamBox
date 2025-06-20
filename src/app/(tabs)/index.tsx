@@ -10,9 +10,12 @@ import ActionCard from "@/components/ActionCard";
 import TransactionItem from "@/components/TransactionItem";
 import Deposit from "@/components/Deposit"
 import { router } from "expo-router";
+import WithdrawModal from "@/components/Withdrawal";
 
 const HomeScreen = () => {
   const [isFundModalVisible, setFundModalVisible] = useState(false);
+  const [showWithdraw, setShowWithdraw] = useState(false);
+
 
   return (
     <View style={styles.container}>
@@ -52,7 +55,12 @@ const HomeScreen = () => {
             title={"Fund"}
             onPress={() => setFundModalVisible(true)}
           />
-          <TransactionButton title={"Withdraw"} onPress={() => {}} />
+          <TransactionButton
+            title={"Withdraw"}
+            onPress={() => {
+              setShowWithdraw(true);
+            }}
+          />
         </View>
       </View>
       <View style={styles.bottomSection}>
@@ -147,6 +155,10 @@ const HomeScreen = () => {
       <Deposit
         visible={isFundModalVisible}
         onClose={() => setFundModalVisible(false)}
+      />
+      <WithdrawModal
+        visible={showWithdraw}
+        onClose={() => setShowWithdraw(false)}
       />
     </View>
   );
