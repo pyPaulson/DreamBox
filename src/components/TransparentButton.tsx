@@ -9,6 +9,7 @@ const TransparentButton = ({
 }: {
   title: string;
   outline?: boolean;
+  onPress?: () => void;
 }) => {
   return (
     <TouchableOpacity
@@ -20,6 +21,7 @@ const TransparentButton = ({
         {title}
       </Text>
     </TouchableOpacity>
+    
   );
 };
 

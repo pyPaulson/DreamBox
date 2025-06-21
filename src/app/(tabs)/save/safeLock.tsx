@@ -20,6 +20,7 @@ const SaveLock = () => {
   const [goals, setGoals] = useState({
     active: [
       {
+        id: 1,
         title: "Rent",
         amount: 4000,
         percentage: 47,
@@ -27,6 +28,7 @@ const SaveLock = () => {
         emergencyFund: 10,
       },
       {
+        id: 2,
         title: "Laptop",
         amount: 890,
         percentage: 17,
@@ -36,6 +38,7 @@ const SaveLock = () => {
     ],
     completed: [
       {
+        id: 3,
         title: "Phone",
         amount: 2000,
         percentage: 100,
@@ -43,6 +46,7 @@ const SaveLock = () => {
         emergencyFund: 10,
       },
       {
+        id: 4,
         title: "Bills",
         amount: 1200,
         percentage: 100,
@@ -57,7 +61,9 @@ const SaveLock = () => {
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Feather name="arrow-left" size={24} color="#000" />
       </TouchableOpacity>
+
       <Text style={styles.header}>SafeLock</Text>
+
       <View style={styles.tabSwitch}>
         {["active", "completed"].map((tab) => (
           <Pressable
@@ -79,9 +85,27 @@ const SaveLock = () => {
       </View>
 
       <FlatList
-        data={goals[activeTab]} // now uses dynamic state
+        data={goals[activeTab]}
         keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => <GoalCard {...item} />}
+        renderItem={({ item }) => (
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: "/save/[id]",
+                params: {
+                  id: item.id.toString(),
+                  title: item.title,
+                  amount: item.amount.toString(),
+                  percentage: item.percentage.toString(),
+                  targetDate: item.targetDate,
+                  emergencyFund: item.emergencyFund.toString(),
+                },
+              })
+            }
+          >
+            <GoalCard {...item} />
+          </Pressable>
+        )}
         contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
       />
@@ -91,6 +115,7 @@ const SaveLock = () => {
           <Text style={styles.fabText}>＋</Text>
         </Pressable>
       )}
+
       <SafeLockModal
         visible={showModal}
         onClose={() => setShowModal(false)}
@@ -101,6 +126,10 @@ const SaveLock = () => {
               ...prev.active,
               {
                 ...newGoal,
+                id:
+                  prev.active.length > 0
+                    ? Math.max(...prev.active.map((g) => g.id)) + 1
+                    : 1,
                 emergencyFund:
                   newGoal.emergencyFund !== undefined
                     ? newGoal.emergencyFund

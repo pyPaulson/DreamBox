@@ -48,6 +48,8 @@ const GoalCard = ({
   );
 };
 
+export default GoalCard;
+
 const styles = StyleSheet.create({
   card: {
     backgroundColor: AppColors.background_two,
@@ -88,5 +90,3 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
 });
-
-export default GoalCard;
