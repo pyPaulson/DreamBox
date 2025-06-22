@@ -27,11 +27,16 @@ const GoalDetail = () => {
           <Feather name="arrow-left" size={24} color="#fff" />
         </TouchableOpacity>
         <View style={styles.amountSec}>
+        
           <Ionicons
             name="ellipsis-horizontal-outline"
             size={20}
             color="#fff"
             style={styles.notificationIcon}
+            onPress={() => {
+              console.log("Notification icon pressed");
+              
+            }}
           />
           <Text style={styles.screenTitle}>SafeLock Detail</Text>
           <Text style={styles.amountLabel}> {title} </Text>
