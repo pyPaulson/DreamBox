@@ -58,7 +58,10 @@ const SaveLock = () => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+      >
         <Feather name="arrow-left" size={24} color="#000" />
       </TouchableOpacity>
 

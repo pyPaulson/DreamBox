@@ -27,7 +27,6 @@ const GoalDetail = () => {
           <Feather name="arrow-left" size={24} color="#fff" />
         </TouchableOpacity>
         <View style={styles.amountSec}>
-        
           <Ionicons
             name="ellipsis-horizontal-outline"
             size={20}
@@ -35,7 +34,6 @@ const GoalDetail = () => {
             style={styles.notificationIcon}
             onPress={() => {
               console.log("Notification icon pressed");
-              
             }}
           />
           <Text style={styles.screenTitle}>SafeLock Detail</Text>
@@ -58,19 +56,20 @@ const GoalDetail = () => {
           <Text style={styles.label}>Saved Amount</Text>
           <Text style={styles.value}>GHS {amount}</Text>
         </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Target Date</Text>
-          <Text style={styles.value}>{targetDate}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Emergency Fund</Text>
-          <Text style={styles.value}>{emergencyFund}%</Text>
-        </View>
+        {targetDate && (
+          <View style={styles.row}>
+            <Text style={styles.label}>Target Date</Text>
+            <Text style={styles.value}>{targetDate}</Text>
+          </View>
+        )}
+        {emergencyFund && (
+          <View style={styles.row}>
+            <Text style={styles.label}>Emergency Fund</Text>
+            <Text style={styles.value}>{emergencyFund}%</Text>
+          </View>
+        )}
         <View style={styles.button}>
-          <FormButton
-            title={"Top-up"}
-            onPress={() => {}}
-          />
+          <FormButton title={"Top-up"} onPress={() => {}} />
         </View>
       </View>
     </View>

@@ -1,4 +1,11 @@
-import { View, Text, StyleSheet, Pressable, FlatList, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  FlatList,
+  TouchableOpacity,
+} from "react-native";
 import React, { useState } from "react";
 import GoalCard from "@/components/GoalCard";
 import AppColors from "@/constants/AppColors";
@@ -13,11 +20,13 @@ const GoalScreen = () => {
   const [goals, setGoals] = useState({
     active: [
       {
+        id: 1,
         title: "Rent",
         amount: 400,
         percentage: 47,
       },
       {
+        id: 2,
         title: "Laptop",
         amount: 890,
         percentage: 17,
@@ -25,25 +34,26 @@ const GoalScreen = () => {
     ],
     completed: [
       {
+        id: 3,
         title: "Phone",
         amount: 2000,
         percentage: 100,
-        targetDate: "Fri May 23 2025",
-        emergencyFund: 10,
       },
       {
+        id: 4,
         title: "Bills",
         amount: 1200,
         percentage: 100,
-        targetDate: "Fri May 23 2025",
-        emergencyFund: 10,
       },
     ],
   });
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+      >
         <Feather name="arrow-left" size={24} color="#000" />
       </TouchableOpacity>
       <Text style={styles.header}>MyGoal</Text>
@@ -68,9 +78,25 @@ const GoalScreen = () => {
       </View>
 
       <FlatList
-        data={goals[activeTab]} // now uses dynamic state
+        data={goals[activeTab]}
         keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => <GoalCard {...item} />}
+        renderItem={({ item }) => (
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: "/save/[id]",
+                params: {
+                  id: item.id.toString(),
+                  title: item.title,
+                  amount: item.amount.toString(),
+                  percentage: item.percentage.toString(),
+                },
+              })
+            }
+          >
+            <GoalCard {...item} />
+          </Pressable>
+        )}
         contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
       />
@@ -86,7 +112,16 @@ const GoalScreen = () => {
         onCreateGoal={(newGoal) => {
           setGoals((prev) => ({
             ...prev,
-            active: [...prev.active, newGoal],
+            active: [
+              ...prev.active,
+              {
+                ...newGoal,
+                id:
+                  prev.active.length > 0
+                    ? Math.max(...prev.active.map((g) => g.id), 0) + 1
+                    : 1,
+              },
+            ],
           }));
           setShowModal(false);
         }}

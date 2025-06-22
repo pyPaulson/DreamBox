@@ -8,14 +8,13 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import TransactionButton from "@/components/TransactionBtn";
 import ActionCard from "@/components/ActionCard";
 import TransactionItem from "@/components/TransactionItem";
-import Deposit from "@/components/Deposit"
+import Deposit from "@/components/Deposit";
 import { router } from "expo-router";
 import WithdrawModal from "@/components/Withdrawal";
 
 const HomeScreen = () => {
   const [isFundModalVisible, setFundModalVisible] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
-
 
   return (
     <View style={styles.container}>
@@ -34,6 +33,9 @@ const HomeScreen = () => {
               size={20}
               color="#fff"
               style={styles.notificationIcon}
+              onPress={() => {
+                console.log("Notification icon pressed");
+              }}
             />
           </View>
         </View>
@@ -72,14 +74,14 @@ const HomeScreen = () => {
             }
             label={"SafeLock"}
             onPress={() => {
-              router.push("/(tabs)/save/safeLock");
+              router.replace("/(tabs)/save/safeLock");
             }}
           />
           <ActionCard
             icon={<Feather name="target" size={24} color="#0D269F" />}
             label={"MyGoal"}
             onPress={() => {
-              router.push("/(tabs)/save/myGoal");
+              router.replace("/(tabs)/save/myGoal");
             }}
           />
           <ActionCard
@@ -91,10 +93,16 @@ const HomeScreen = () => {
               />
             }
             label={"Flexi"}
+            onPress={() => {
+              router.replace("/(tabs)/save/flexi");
+            }}
           />
           <ActionCard
             icon={<MaterialIcons name="emergency" size={24} color="#0D269F" />}
             label={"Emergency"}
+            onPress={() => {
+              router.replace("/(tabs)/save/emergency");
+            }}
           />
         </View>
         <View style={styles.recentRow}>
