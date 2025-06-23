@@ -1,14 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 
-const ExploreScreen = () => {
+const ExploreSafeLock = () => {
   return (
     <View>
-      <Text>ExploreScreen</Text>
+      <Text>ExploreSafeLock</Text>
     </View>
   )
 }
 
-export default ExploreScreen
+export default ExploreSafeLock
 
 const styles = StyleSheet.create({})
