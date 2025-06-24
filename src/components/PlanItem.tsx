@@ -47,9 +47,9 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "transparent",
     padding: 20,
-    borderBottomWidth: 1.5,
+    borderBottomWidth: 1,
     borderBottomColor: AppColors.background_two,
-    paddingBottom: 10,
+    paddingBottom: 7,
   },
   row: {
     flexDirection: "row",
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     color: AppColors.text_one,
   },
   description: {
-    fontSize: 16,
+    fontSize: 14,
     color: AppColors.text_two,
     fontFamily: Fonts.body,
     marginTop: 8,
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   startNow: {
     color: AppColors.primary,
     fontFamily: Fonts.bodyBold,
-    fontSize: 18,
+    fontSize: 14,
     alignSelf: "flex-end",
     marginTop: 10,
   },

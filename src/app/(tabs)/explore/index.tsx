@@ -20,9 +20,15 @@ const ExploreScreen = () => {
         <View style={styles.cardWrapper}>
           <ExploreCard
             title="SafeLock"
-            description="Explore how to create and use SafeLock plan to improve your saving behavior."
+            description="Learn how locking money for a set time can keep you focused and disciplined. Tap to explore how it works and how to start your first SafeLock plan."
             iconName="lock-outline"
-            onPress={() => router.push("/explore/explore-safelock")}
+            onPress={() => router.push("/noTabScreens/explore-safelock")}
+          />
+          <ExploreCard
+            title="MyGoal"
+            description="Explore how to create and use MyGoal plan to improve your saving behavior."
+            iconName="lock-outline"
+            onPress={() => router.push("/noTabScreens/explore-safelock")}
           />
         </View>
       </ScrollView>
