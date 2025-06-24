@@ -74,14 +74,14 @@ const HomeScreen = () => {
             }
             label={"SafeLock"}
             onPress={() => {
-              router.replace("/(tabs)/save/safeLock");
+              router.push("/noTabScreens/safeLock");
             }}
           />
           <ActionCard
             icon={<Feather name="target" size={24} color="#0D269F" />}
             label={"MyGoal"}
             onPress={() => {
-              router.replace("/(tabs)/save/myGoal");
+              router.push("/noTabScreens/myGoal");
             }}
           />
           <ActionCard
@@ -94,14 +94,14 @@ const HomeScreen = () => {
             }
             label={"Flexi"}
             onPress={() => {
-              router.replace("/(tabs)/save/flexi");
+              router.push("/noTabScreens/flexi"); 
             }}
           />
           <ActionCard
             icon={<MaterialIcons name="emergency" size={24} color="#0D269F" />}
             label={"Emergency"}
             onPress={() => {
-              router.replace("/(tabs)/save/emergency");
+              router.push("/noTabScreens/emergency");
             }}
           />
         </View>

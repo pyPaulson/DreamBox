@@ -94,7 +94,7 @@ const SaveLock = () => {
           <Pressable
             onPress={() =>
               router.push({
-                pathname: "/save/[id]",
+                pathname: "/noTabScreens/[id]",
                 params: {
                   id: item.id.toString(),
                   title: item.title,
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: "absolute",
-    bottom: 140,
+    bottom: 70,
     right: 30,
     backgroundColor: AppColors.primary,
     width: 48,
