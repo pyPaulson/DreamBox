@@ -18,16 +18,34 @@ const steps = [
   {
     key: "1",
     title: "Setup SafeLock",
+    subTitle: "Choose SafeLock from Plans",
     description:
-      "On the Save tab on the bottom tab navigation bar, choose SafeLock from the plans available and click start now",
+      "Tap on Save on the bottom tab navigation bar, choose SafeLock from the plans available and click start now",
     image: require("@/assets/images/safe1.png"),
   },
   {
     key: "2",
-    title: "Track Your Savings",
+    title: "Setup SafeLock",
+    subTitle: "Create a goal",
     description:
-      "Monitor and manage your SafeLock plans anytime in your dashboard.",
-    image: require("@/assets/images/safe1.png"),
+      "Tap on the floating action button to create a new active goal. ",
+    image: require("@/assets/images/safe2.png"),
+  },
+  {
+    key: "3",
+    title: "Setup SafeLock",
+    subTitle: "Enter Goal Details",
+    description:
+      "Enter the goal name, target amount, and target date. You can also set an emergency fund percentage if you want to. Target date is a specified date you can withdraw your funds.",
+    image: require("@/assets/images/safe3.png"),
+  },
+  {
+    key: "4",
+    title: "Setup SafeLock",
+    subTitle: "Your goal is ready",
+    description:
+      "Start saving towards your goal. You can add money to your SafeLock at any time but can only withdraw when specified duration is up.",
+    image: require("@/assets/images/safe2.png"),
   },
 ];
 
@@ -52,6 +70,7 @@ const ExploreSafeLock = () => {
         renderItem={({ item }) => (
           <Onboarding
             title={item.title}
+            subTitle={item.subTitle}
             description={item.description}
             image={item.image}
           />

@@ -6,17 +6,18 @@ const { width } = Dimensions.get("window");
 
 type OnboardingStepProps = {
   title: string;
+  subTitle: string;
   description: string;
   image: any; 
 };
 
-const OnboardingStep = ({ title, description, image }: OnboardingStepProps) => {
+const OnboardingStep = ({ title, subTitle, description, image }: OnboardingStepProps) => {
   return (
     <View style={[styles.container, { width }]}>
       <Text style={styles.header}>{title}</Text>
       <Image source={image} resizeMode="contain" style={styles.image} />
       <View style={styles.textWrapper}>
-        <Text style={styles.stepTitle}>Create SafeLock Plan</Text>
+        <Text style={styles.stepTitle}> {subTitle} </Text>
         <Text style={styles.stepText}>{description}</Text>
       </View>
     </View>
