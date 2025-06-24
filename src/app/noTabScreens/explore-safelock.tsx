@@ -1,4 +1,6 @@
 import Onboarding from "@/components/Onboarding";
+import { Feather } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
   FlatList,
@@ -7,6 +9,7 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   Dimensions,
+  TouchableOpacity,
 } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -39,6 +42,9 @@ const ExploreSafeLock = () => {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <Feather name="arrow-left" size={24} color="#fff" />
+      </TouchableOpacity>
       <FlatList
         ref={flatListRef}
         data={steps}
@@ -75,12 +81,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
-    position: "relative", 
+    position: "relative",
+  },
+  backButton: {
+    position: "absolute",
+    top: 110,
+    left: 27,
+    zIndex: 10,
   },
   pagination: {
     flexDirection: "row",
-    position: "absolute", 
-    bottom: 100, 
+    position: "absolute",
+    bottom: 100,
     left: 0,
     right: 0,
     justifyContent: "center",
