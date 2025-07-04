@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     marginBottom: 7,
     marginLeft: 3,
     color: AppColors.text_two,
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: Fonts.body,
   },
   labelError: {
