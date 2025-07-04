@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Image,
   Platform,
-  Alert,
 } from "react-native";
 import LoginFormInput from "@/components/FormInput";
 import FormButton from "@/components/FormButton";
