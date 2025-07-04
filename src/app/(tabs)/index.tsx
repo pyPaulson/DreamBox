@@ -11,10 +11,25 @@ import TransactionItem from "@/components/TransactionItem";
 import Deposit from "@/components/Deposit";
 import { router } from "expo-router";
 import WithdrawModal from "@/components/Withdrawal";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect } from "react";
+
 
 const HomeScreen = () => {
   const [isFundModalVisible, setFundModalVisible] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
+  const [firstName, setFirstName] = useState("User");
+
+  useEffect(() => {
+    AsyncStorage.getItem("user")
+      .then((data) => {
+        if (data) {
+          const user = JSON.parse(data);
+          if (user.first_name) setFirstName(user.first_name);
+        }
+      })
+      .catch((err) => console.error("Error reading user info:", err));
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -26,7 +41,7 @@ const HomeScreen = () => {
             color="#fff"
             style={styles.greetingsIcon}
           />
-          <Text style={styles.greetingsText}>Hello User</Text>
+          <Text style={styles.greetingsText}>Hello {firstName}</Text>
           <View>
             <Ionicons
               name="notifications"
@@ -94,7 +109,7 @@ const HomeScreen = () => {
             }
             label={"Flexi"}
             onPress={() => {
-              router.push("/noTabScreens/flexi"); 
+              router.push("/noTabScreens/flexi");
             }}
           />
           <ActionCard

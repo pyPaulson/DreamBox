@@ -1,15 +1,33 @@
+import {
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import AppColors from "@/constants/AppColors";
-import { TouchableOpacity, Text, StyleSheet } from "react-native";
 
 interface FormButtonProps {
   title: string;
   onPress: () => void;
+  loading?: boolean;
 }
 
-export default function FormButton({ title, onPress }: FormButtonProps) {
+export default function FormButton({
+  title,
+  onPress,
+  loading,
+}: FormButtonProps) {
   return (
-    <TouchableOpacity onPress={onPress} style={styles.button}>
-      <Text style={styles.buttonText}>{title}</Text>
+    <TouchableOpacity
+      onPress={onPress}
+      style={[styles.button, loading && styles.buttonDisabled]}
+      disabled={loading}
+    >
+      {loading ? (
+        <ActivityIndicator size="large" color="#fff" />
+      ) : (
+        <Text style={styles.buttonText}>{title}</Text>
+      )}
     </TouchableOpacity>
   );
 }
@@ -20,7 +38,12 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 6,
     alignItems: "center",
+    justifyContent: "center",
     marginTop: 12,
+    minHeight: 68,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   buttonText: {
     paddingVertical: 10,

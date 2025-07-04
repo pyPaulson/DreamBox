@@ -1,12 +1,12 @@
 import {
   KeyboardAvoidingView,
-  ScrollView,
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Image,
   Platform,
+  Alert,
 } from "react-native";
 import LoginFormInput from "@/components/FormInput";
 import FormButton from "@/components/FormButton";
@@ -15,16 +15,40 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
+import { loginUser } from '@/services/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
 
 export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [emailError, setEmailError] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    router.push("/(tabs)");
-    console.log("Logging in with:", email, password);
+  const handleLogin = async () => {
+    setLoading(true);
+    setEmailError(false);
+    setPasswordError(false);
+
+    try {
+      const response = await loginUser({email, password}); // from auth.js
+
+      if (response?.access_token) {
+        await AsyncStorage.setItem("access_token", response.access_token);
+        await AsyncStorage.setItem("user", JSON.stringify(response.user));
+        router.push("/(tabs)");
+      } else {
+        setEmailError(true);
+        setPasswordError(true);
+      }
+    } catch (error) {
+      setEmailError(true);
+      setPasswordError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -51,16 +75,29 @@ export default function LoginScreen() {
           <LoginFormInput
             label="Email Address"
             placeholder="Enter your email"
+            keyboardType="email-address"
+            textContentType="emailAddress"
+            autoCapitalize="none"
+            autoCorrect={false}
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => {
+              setEmail(text);
+              setEmailError(false);
+            }}
             icon={<Feather name="mail" size={25} color="#636363" />}
+            hasError={emailError}
+            customLabel="Invalid email address"
           />
+
           <LoginFormInput
             label="Password"
             placeholder="Enter Password"
             value={password}
-            onChangeText={setPassword}
-            secureTextEntry
+            onChangeText={(text) => {
+              setPassword(text);
+              setPasswordError(false);
+            }}
+            secureTextEntry={!showPassword}
             icon={
               <Feather
                 name={showPassword ? "eye-off" : "eye"}
@@ -69,12 +106,15 @@ export default function LoginScreen() {
                 onPress={() => setShowPassword((prev) => !prev)}
               />
             }
+            hasError={passwordError}
+            customLabel="Incorrect password"
           />
+
           <TouchableOpacity onPress={() => {}}>
             <Text style={styles.forgot}>Forgot Password?</Text>
           </TouchableOpacity>
 
-          <FormButton title="Login" onPress={handleLogin} />
+          <FormButton title="Login" onPress={handleLogin} loading={loading} />
 
           <Text style={styles.signupPrompt}>
             Don’t have an account?{" "}
@@ -128,6 +168,14 @@ const styles = StyleSheet.create({
     marginLeft: 3,
     color: "#333",
     opacity: 0.65,
+    fontFamily: Fonts.body,
+  },
+  errorText: {
+    color: "red",
+    marginTop: -5,
+    marginBottom: 6,
+    marginLeft: 3,
+    fontSize: 13,
     fontFamily: Fonts.body,
   },
   forgot: {

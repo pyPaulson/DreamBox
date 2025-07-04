@@ -5,15 +5,22 @@ import Fonts from "@/constants/Fonts";
 interface FormInputProps extends TextInputProps {
   label?: string;
   icon?: React.ReactNode;
+  hasError?: boolean;
+  customLabel?: string;
 }
 
-export default function FormInput({ label, icon, ...props }: FormInputProps) {
+
+export default function FormInput({ label, icon, hasError, customLabel, ...props }: FormInputProps) {
   return (
     <View style={styles.container}>
-      {label && <Text style={styles.label}>{label}</Text>}
-      <View style={styles.inputWrapper}>
+      {label && (
+        <Text style={[styles.label, hasError && styles.labelError]}>
+          {hasError ? customLabel : label}
+        </Text>
+      )}
+      <View style={[styles.inputWrapper, hasError && { borderColor: "red" }]}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, hasError && { color: "black" }]}
           placeholderTextColor={AppColors.placeholder}
           {...props}
         />
@@ -34,6 +41,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: Fonts.body,
   },
+  labelError: {
+    color: "red",
+  },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
@@ -47,7 +57,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 17,
     fontSize: 16,
-    fontFamily: Fonts.body, 
+    fontFamily: Fonts.body,
   },
   icon: {
     marginLeft: 8,
