@@ -3,12 +3,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
-  Modal,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Feather } from "@expo/vector-icons";
@@ -20,7 +18,6 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { format } from "date-fns";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
-import DropDownPicker from "react-native-dropdown-picker";
 import { registerUser } from "@/services/auth";
 
 export default function SignupScreen() {
@@ -333,7 +330,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: AppColors.grey_two,
     backgroundColor: AppColors.text_three,
-    padding: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 16,
     borderRadius: 8,
   },
   dropdownPlaceholder: {

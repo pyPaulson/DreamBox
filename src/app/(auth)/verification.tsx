@@ -12,14 +12,14 @@ export default function VerificationScreen() {
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Feather name="arrow-left" size={24} color="#000" />
       </TouchableOpacity>
-      <Text style={styles.title}>Verification Code</Text>
+      <Text style={styles.title}>Verify your email</Text>
       <Text style={styles.subtitle}>
-        We have sent an{" "}
+        We have sent a{" "}
         <Text style={{ color: AppColors.primary, fontFamily: Fonts.bodyBold }}>
           {" "}
-          SMS{" "}
+          mail{" "}
         </Text>{" "}
-        with a verification code to +233******20.
+        with a verification code to your email.
       </Text>
       <FormInput
         placeholder="Enter verification code"

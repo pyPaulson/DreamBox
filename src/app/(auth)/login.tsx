@@ -109,7 +109,9 @@ export default function LoginScreen() {
             customLabel="Incorrect password"
           />
 
-          <TouchableOpacity onPress={() => {}}>
+          <TouchableOpacity onPress={() => {
+            router.push("/forgot-password")
+          }}>
             <Text style={styles.forgot}>Forgot Password?</Text>
           </TouchableOpacity>
 
