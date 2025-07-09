@@ -12,3 +12,13 @@ export const loginUser = async (credentials) => {
 
   return response.data;
 };
+
+export const verifyEmail = async ({ email, code }) => {
+  const response = await api.post("/verify-email", { email, code });
+  return response.data;
+};
+
+export const resendCode = async (email) => {
+  const response = await api.post("/resend-code", { email });
+  return response.data;
+};

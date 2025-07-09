@@ -248,7 +248,10 @@ export default function SignupScreen() {
 
                   const res = await registerUser(formData);
                   console.log("Registration Success", res);
-                  router.push("./verification");
+                  router.push({
+                    pathname: "/verification",
+                    params: { email: form.email },
+                  });
                 } catch (error: any) {
                   let errorMessage = "Registration failed";
 

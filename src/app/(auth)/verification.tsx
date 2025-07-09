@@ -1,12 +1,51 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import FormInput from "@/components/FormInput";
 import FormButton from "@/components/FormButton";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
+import { resendCode, verifyEmail } from "@/services/auth";
 
 export default function VerificationScreen() {
+  const params = useLocalSearchParams();
+  const email = typeof params.email === "string" ? params.email : "";
+  const [code, setCode] = useState("");
+
+  const handleVerify = async () => {
+    if (!code || !email) {
+      return Alert.alert("Missing Info", "Code or email is missing");
+    }
+
+    try {
+      const res = await verifyEmail({ email, code });
+      Alert.alert("Success", res.message, [
+        {
+          text: "OK",
+          onPress: () => router.replace("/create-pin"), 
+        },
+      ]); 
+    } catch (error) {
+      console.error("Verification error:", error);
+      let message = "Verification failed. Try again.";
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        typeof (error as any).response === "object" &&
+        (error as any).response !== null &&
+        "data" in (error as any).response &&
+        typeof (error as any).response.data === "object" &&
+        (error as any).response.data !== null &&
+        "detail" in (error as any).response.data
+      ) {
+        message = (error as any).response.data.detail;
+      }
+      Alert.alert("Error", message);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
@@ -25,16 +64,48 @@ export default function VerificationScreen() {
         placeholder="Enter verification code"
         keyboardType="numeric"
         maxLength={6}
+        value={code}
+        onChangeText={setCode}
       />
       <Text style={styles.resendPrompt}>
         Didn't get OTP?{" "}
-        <Text style={styles.resendLink} onPress={() => {}}>
+        <Text
+          style={styles.resendLink}
+          onPress={async () => {
+            if (!email) return Alert.alert("Missing email");
+
+            try {
+              const res = await resendCode(email);
+              Alert.alert("Success", res.message);
+            } catch (err) {
+              console.error("Resend error:", err);
+              let message = "Could not resend code.";
+              if (
+                typeof err === "object" &&
+                err !== null &&
+                "response" in err &&
+                typeof (err as any).response === "object" &&
+                (err as any).response !== null &&
+                "data" in (err as any).response &&
+                typeof (err as any).response.data === "object" &&
+                (err as any).response.data !== null &&
+                "detail" in (err as any).response.data
+              ) {
+                message = (err as any).response.data.detail;
+              }
+              Alert.alert("Error", message);
+            }
+          }}
+        >
           Resend
         </Text>
       </Text>
-      <FormButton title="Verify" onPress={() => {
-       router.replace("/create-pin");
-      }} />
+      <FormButton
+        title="Verify"
+        onPress={() => {
+          handleVerify();
+        }}
+      />
     </View>
   );
 }
