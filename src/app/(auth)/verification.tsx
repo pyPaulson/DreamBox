@@ -5,7 +5,7 @@ import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
 import { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { resendCode, verifyEmail } from "@/services/auth";
 
 export default function VerificationScreen() {
@@ -13,19 +13,30 @@ export default function VerificationScreen() {
   const email = typeof params.email === "string" ? params.email : "";
   const [code, setCode] = useState("");
 
+  useEffect(() => {
+    if (email) {
+      resendCode(email)
+        .then(() => console.log("Verification code sent ✅"))
+        .catch((err) => {
+          console.error("Auto-send error:", err);
+          Alert.alert("Error", "Failed to send verification code.");
+        });
+    }
+  }, [email]);
+
   const handleVerify = async () => {
     if (!code || !email) {
       return Alert.alert("Missing Info", "Code or email is missing");
     }
-
+    
     try {
       const res = await verifyEmail({ email, code });
       Alert.alert("Success", res.message, [
         {
           text: "OK",
-          onPress: () => router.replace("/create-pin"), 
+          onPress: () => router.replace("/create-pin"),
         },
-      ]); 
+      ]);
     } catch (error) {
       console.error("Verification error:", error);
       let message = "Verification failed. Try again.";
@@ -51,15 +62,16 @@ export default function VerificationScreen() {
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Feather name="arrow-left" size={24} color="#000" />
       </TouchableOpacity>
+
       <Text style={styles.title}>Verify your email</Text>
       <Text style={styles.subtitle}>
         We have sent a{" "}
         <Text style={{ color: AppColors.primary, fontFamily: Fonts.bodyBold }}>
-          {" "}
-          mail{" "}
+          mail
         </Text>{" "}
         with a verification code to your email.
       </Text>
+
       <FormInput
         placeholder="Enter verification code"
         keyboardType="numeric"
@@ -67,6 +79,7 @@ export default function VerificationScreen() {
         value={code}
         onChangeText={setCode}
       />
+
       <Text style={styles.resendPrompt}>
         Didn't get OTP?{" "}
         <Text
@@ -100,12 +113,8 @@ export default function VerificationScreen() {
           Resend
         </Text>
       </Text>
-      <FormButton
-        title="Verify"
-        onPress={() => {
-          handleVerify();
-        }}
-      />
+
+      <FormButton title="Verify" onPress={handleVerify} />
     </View>
   );
 }

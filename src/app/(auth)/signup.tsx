@@ -19,6 +19,7 @@ import { format } from "date-fns";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
 import { registerUser } from "@/services/auth";
+import { StatusBar } from "expo-status-bar";
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -278,6 +279,8 @@ export default function SignupScreen() {
           </View>
         </KeyboardAwareScrollView>
       </TouchableWithoutFeedback>
+
+      <StatusBar style='dark'/>
     </KeyboardAvoidingView>
   );
 }
