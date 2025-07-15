@@ -5,8 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
+  Alert,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
@@ -16,7 +17,7 @@ interface PinDotProps {
   index: number;
 }
 
-const PinDot: React.FC<PinDotProps> = ({ filled, index }) => {
+const PinDot: React.FC<PinDotProps> = ({ filled }) => {
   const scaleAnim = new Animated.Value(1);
 
   useEffect(() => {
@@ -64,9 +65,7 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
 }) => {
   const [pressed, setPressed] = useState(false);
 
-  if (disabled) {
-    return <View style={styles.buttonSpacer} />;
-  }
+  if (disabled) return <View style={styles.buttonSpacer} />;
 
   return (
     <TouchableOpacity
@@ -81,10 +80,14 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
   );
 };
 
-export default function CreatePinScreen() {
+export default function VerifyPinScreen() {
   const router = useRouter();
-  const [pin, setPin] = useState<string>("");
-  const [isNavigating, setIsNavigating] = useState(false);
+  const params = useLocalSearchParams();
+  const expectedPin = typeof params.pin === "string" ? params.pin : "";
+  const email = typeof params.email === "string" ? params.email : "";
+
+  const [pin, setPin] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const keypadLayout = [
     ["1", "2", "3"],
@@ -94,86 +97,94 @@ export default function CreatePinScreen() {
   ];
 
   const handleNumberPress = (digit: string) => {
-    if (pin.length < 4 && !isNavigating) {
+    if (pin.length < 4 && !isVerifying) {
       setPin((prev) => prev + digit);
     }
   };
 
   const handleBackspace = () => {
-    if (!isNavigating) {
+    if (!isVerifying) {
       setPin((prev) => prev.slice(0, -1));
     }
   };
 
-  const handlePinComplete = () => {
-    setIsNavigating(true);
+  const verifyPinMatch = () => {
+    setIsVerifying(true);
+
     setTimeout(() => {
-      router.replace("/(auth)/welcome");
-    }, 500);
+      if (pin === expectedPin) {
+        Alert.alert("Success", "PIN confirmed!", [
+          {
+            text: "Continue",
+            onPress: () => router.replace("/welcome"),
+          },
+        ]);
+      } else {
+        Alert.alert("Incorrect PIN", "The PINs do not match. Try again.");
+        setPin("");
+        setIsVerifying(false);
+      }
+    }, 300);
   };
 
   useEffect(() => {
-    if (pin.length === 4) {
-      handlePinComplete();
+    if (pin.length === 4 && !isVerifying) {
+      verifyPinMatch();
     }
   }, [pin]);
 
-  const renderKeypadRow = (row: (string | null)[], rowIndex: number) => {
-    return (
-      <View key={rowIndex} style={styles.keypadRow}>
-        {row.map((item, index) => {
-          if (item === null) {
-            return <KeypadButton key={index} onPress={() => {}} disabled />;
-          }
+  const renderKeypadRow = (row: (string | null)[], rowIndex: number) => (
+    <View key={rowIndex} style={styles.keypadRow}>
+      {row.map((item, index) => {
+        if (item === null) {
+          return <KeypadButton key={index} onPress={() => {}} disabled />;
+        }
 
-          if (item === "backspace") {
-            return (
-              <KeypadButton
-                key={index}
-                onPress={handleBackspace}
-                icon={
-                  <Ionicons
-                    name="backspace-outline"
-                    size={28}
-                    color={AppColors.text_two}
-                  />
-                }
-              />
-            );
-          }
-
+        if (item === "backspace") {
           return (
             <KeypadButton
               key={index}
-              value={item}
-              onPress={() => handleNumberPress(item)}
+              onPress={handleBackspace}
+              icon={
+                <Ionicons
+                  name="backspace-outline"
+                  size={28}
+                  color={AppColors.text_two}
+                />
+              }
             />
           );
-        })}
-      </View>
-    );
-  };
+        }
+
+        return (
+          <KeypadButton
+            key={index}
+            value={item}
+            onPress={() => handleNumberPress(item)}
+          />
+        );
+      })}
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Verify PIN</Text>
-        <Text style={styles.subtitle}>Confirm your 4 digit PIN</Text>
-      </View>
+      <Text style={styles.title}>Confirm your PIN</Text>
+      <Text style={styles.subtitle}>Re-enter your 4 digit PIN</Text>
 
       <View style={styles.pinDisplay}>
-        {Array.from({ length: 4 }, (_, index) => (
-          <PinDot key={index} filled={pin.length > index} index={index} />
+        {Array.from({ length: 4 }, (_, i) => (
+          <PinDot key={i} filled={pin.length > i} index={i} />
         ))}
       </View>
 
       <View style={styles.keypadContainer}>
-        {keypadLayout.map((row, index) => renderKeypadRow(row, index))}
+        {keypadLayout.map((row, i) => renderKeypadRow(row, i))}
       </View>
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>
-          {pin.length === 4 ? "PIN Created!" : `${pin.length}/4 digits`}
+          {pin.length === 4 ? "Verifying..." : `${pin.length}/4 digits`}
         </Text>
       </View>
     </View>
@@ -187,9 +198,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 140,
     paddingHorizontal: 20,
-  },
-  header: {
-    alignItems: "center",
   },
   title: {
     fontSize: 24,
@@ -207,7 +215,6 @@ const styles = StyleSheet.create({
   pinDisplay: {
     flexDirection: "row",
     justifyContent: "center",
-    alignItems: "center",
     gap: 20,
     marginVertical: 60,
   },
@@ -225,7 +232,6 @@ const styles = StyleSheet.create({
   keypadRow: {
     flexDirection: "row",
     justifyContent: "space-around",
-    alignItems: "center",
   },
   keypadButton: {
     width: 80,
@@ -234,18 +240,9 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.background_two,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   keypadButtonPressed: {
     backgroundColor: AppColors.primary,
-    transform: [{ scale: 0.95 }],
   },
   buttonSpacer: {
     width: 80,

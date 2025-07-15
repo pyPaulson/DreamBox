@@ -21,14 +21,16 @@ const HomeScreen = () => {
   const [firstName, setFirstName] = useState("User");
 
   useEffect(() => {
-    AsyncStorage.getItem("user")
-      .then((data) => {
-        if (data) {
-          const user = JSON.parse(data);
-          if (user.first_name) setFirstName(user.first_name);
-        }
-      })
-      .catch((err) => console.error("Error reading user info:", err));
+    const loadName = async () => {
+      try {
+        const name = await AsyncStorage.getItem("user_first_name");
+        if (name) setFirstName(name);
+      } catch (err) {
+        console.log("Failed to load first name:", err);
+      }
+    };
+
+    loadName();
   }, []);
 
   return (

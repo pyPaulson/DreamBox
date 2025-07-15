@@ -5,11 +5,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
+  Alert,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
+import { setUserPin } from "@/services/auth"; // ✅ import service
 
 interface PinDotProps {
   filled: boolean;
@@ -64,9 +66,7 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
 }) => {
   const [pressed, setPressed] = useState(false);
 
-  if (disabled) {
-    return <View style={styles.buttonSpacer} />;
-  }
+  if (disabled) return <View style={styles.buttonSpacer} />;
 
   return (
     <TouchableOpacity
@@ -83,7 +83,10 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
 
 export default function CreatePinScreen() {
   const router = useRouter();
-  const [pin, setPin] = useState<string>("");
+  const params = useLocalSearchParams();
+  const email = typeof params.email === "string" ? params.email : "";
+
+  const [pin, setPinInput] = useState("");
   const [isNavigating, setIsNavigating] = useState(false);
 
   const keypadLayout = [
@@ -95,64 +98,87 @@ export default function CreatePinScreen() {
 
   const handleNumberPress = (digit: string) => {
     if (pin.length < 4 && !isNavigating) {
-      setPin((prev) => prev + digit);
+      setPinInput((prev) => prev + digit);
     }
   };
 
   const handleBackspace = () => {
     if (!isNavigating) {
-      setPin((prev) => prev.slice(0, -1));
+      setPinInput((prev) => prev.slice(0, -1));
     }
   };
 
-  const handlePinComplete = () => {
-    setIsNavigating(true);
-    setTimeout(() => {
-      router.replace("/(auth)/verify-pin");
-    }, 500);
+  const handlePinComplete = async () => {
+    if (!email) {
+      Alert.alert("Error", "Email is missing");
+      return;
+    }
+
+    try {
+      setIsNavigating(true);
+      const res = await setUserPin(email, pin);
+      Alert.alert("Success", res.message, [
+        {
+          text: "OK",
+          onPress: () => router.replace({
+            pathname: "/(auth)/verify-pin",
+            params: { pin, email }, // pass both email and pin to verify screen
+          }),
+        },
+      ]);
+    } catch (err: any) {
+      let message = "Failed to set PIN. Try again.";
+      if (
+        err?.response?.data?.detail &&
+        typeof err.response.data.detail === "string"
+      ) {
+        message = err.response.data.detail;
+      }
+      Alert.alert("Error", message);
+      setPinInput(""); // reset
+      setIsNavigating(false);
+    }
   };
 
   useEffect(() => {
-    if (pin.length === 4) {
+    if (pin.length === 4 && !isNavigating) {
       handlePinComplete();
     }
   }, [pin]);
 
-  const renderKeypadRow = (row: (string | null)[], rowIndex: number) => {
-    return (
-      <View key={rowIndex} style={styles.keypadRow}>
-        {row.map((item, index) => {
-          if (item === null) {
-            return <KeypadButton key={index} onPress={() => {}} disabled />;
-          }
+  const renderKeypadRow = (row: (string | null)[], rowIndex: number) => (
+    <View key={rowIndex} style={styles.keypadRow}>
+      {row.map((item, index) => {
+        if (item === null) {
+          return <KeypadButton key={index} onPress={() => {}} disabled />;
+        }
 
-          if (item === "backspace") {
-            return (
-              <KeypadButton
-                key={index}
-                onPress={handleBackspace}
-                icon={
-                  <Ionicons
-                    name="backspace-outline"
-                    size={28}
-                    color={AppColors.text_two}
-                  />
-                }
-              />
-            );
-          }
-
+        if (item === "backspace") {
           return (
             <KeypadButton
               key={index}
-              value={item}
-              onPress={() => handleNumberPress(item)}
+              onPress={handleBackspace}
+              icon={
+                <Ionicons
+                  name="backspace-outline"
+                  size={28}
+                  color={AppColors.text_two}
+                />
+              }
             />
           );
-        })}
-      </View>
-    );
-  };
+        }
+
+        return (
+          <KeypadButton
+            key={index}
+            value={item}
+            onPress={() => handleNumberPress(item)}
+          />
+        );
+      })}
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -235,10 +261,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,

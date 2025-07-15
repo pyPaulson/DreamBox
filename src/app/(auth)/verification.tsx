@@ -34,7 +34,10 @@ export default function VerificationScreen() {
       Alert.alert("Success", res.message, [
         {
           text: "OK",
-          onPress: () => router.replace("/create-pin"),
+          onPress: () => router.replace({
+            pathname: "/create-pin",
+            params: { email },
+          }),
         },
       ]);
     } catch (error) {
