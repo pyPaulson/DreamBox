@@ -32,11 +32,13 @@ export default function LoginScreen() {
     setPasswordError(false);
 
     try {
-      const response = await loginUser({email, password}); // from auth.js
+      const response = await loginUser(email, password);
 
       if (response?.access_token) {
-        await AsyncStorage.setItem("access_token", response.access_token);
-        await AsyncStorage.setItem("user", JSON.stringify(response.user));
+        await AsyncStorage.setItem("accessToken", response.access_token);
+        if (response.first_name) {
+          await AsyncStorage.setItem("user_first_name", response.first_name);
+        }
         router.push("/(tabs)");
       } else {
         setEmailError(true);

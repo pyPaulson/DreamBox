@@ -21,6 +21,7 @@ import Fonts from "@/constants/Fonts";
 import { registerUser } from "@/services/auth";
 import { StatusBar } from "expo-status-bar";
 
+
 export default function SignupScreen() {
   const router = useRouter();
   const [form, setForm] = useState({
@@ -172,6 +173,7 @@ export default function SignupScreen() {
               placeholder="Phone Number"
               value={form.phone_number}
               keyboardType="phone-pad"
+              maxLength={10}
               onChangeText={(text) => handleChange("phone_number", text)}
             />
             <FormInput
@@ -262,7 +264,7 @@ export default function SignupScreen() {
                     if (typeof detail === "string") {
                       errorMessage = detail;
                     } else if (Array.isArray(detail)) {
-                      // Validation errors (e.g., Pydantic)
+                      
                       errorMessage = detail
                         .map((err: any) => err.msg)
                         .join("\n");
@@ -272,7 +274,7 @@ export default function SignupScreen() {
                   }
 
                   console.error("Registration Error:", errorMessage);
-                  alert(errorMessage); // or setErrorMessage(errorMessage) if you want inline
+                  alert(errorMessage); 
                 }
               }}
             />

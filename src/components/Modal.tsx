@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   View,
@@ -45,6 +45,23 @@ const SafeLockModal = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
 
+
+  const resetForm = () => {
+    setPlanName("");
+    setAmount("");
+    setDate(new Date());
+    setEmergencyToggle(false);
+    setConfirmed(false);
+    setShowDropdown(false);
+    setPercentage("10%");
+  };
+
+  useEffect(() => {
+    if (!visible) {
+      resetForm(); // this clears the form
+    }
+  }, [visible]);
+  
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>
@@ -149,16 +166,30 @@ const SafeLockModal = ({
               )}
 
               <View style={styles.checkboxRow}>
-                <Pressable onPress={() => setConfirmed(!confirmed)}>
+                <Pressable
+                  onPress={() => setConfirmed(!confirmed)}
+                  style={({ pressed }) => [
+                    {
+                      flexDirection: "row",
+                      alignItems: "center",
+                      backgroundColor: confirmed
+                        ? AppColors.background_one
+                        : "transparent",
+                      padding: 5,
+                      borderRadius: 8,
+                    },
+                    pressed && { opacity: 0.7 },
+                  ]}
+                >
                   <Ionicons
                     name={confirmed ? "checkbox" : "square-outline"}
                     size={24}
                     color={AppColors.primary}
                   />
+                  <Text style={styles.checkboxText}>
+                    I understand I cannot withdraw this money until it unlocks
+                  </Text>
                 </Pressable>
-                <Text style={styles.checkboxText}>
-                  I understand I cannot withdraw this money until it unlocks
-                </Text>
               </View>
 
               <FormButton
@@ -166,30 +197,28 @@ const SafeLockModal = ({
                 onPress={() => {
                   if (!planName || !amount || !confirmed) return;
 
-                  const newGoal = {
+                  const newGoal: any = {
                     title: planName,
                     amount: parseFloat(amount),
-                    percentage: 0, // Start at 0 or let user input this if needed
-                    emergencyFund: emergencyToggle
-                      ? parseInt(percentage)
-                      : undefined,
                     targetDate: date.toDateString(),
                   };
 
-                  onCreateGoal(newGoal);
+                  if (emergencyToggle) {
+                    newGoal.percentage = parseInt(percentage);
+                    newGoal.emergencyFund = parseInt(percentage);
+                  }
 
-                  // Optional: reset form fields
-                  setPlanName("");
-                  setAmount("");
-                  setDate(new Date());
-                  setEmergencyToggle(false);
-                  setConfirmed(false);
-                  setShowDropdown(false);
-                  setPercentage("10%");
+                  onCreateGoal(newGoal);
                 }}
               />
 
-              <Pressable onPress={onClose} style={styles.cancelBtn}>
+              <Pressable
+                onPress={() => {
+                  resetForm();
+                  onClose();
+                }}
+                style={styles.cancelBtn}
+              >
                 <Text style={styles.cancelText}>Cancel</Text>
               </Pressable>
             </ScrollView>

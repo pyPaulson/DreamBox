@@ -5,63 +5,115 @@ import {
   Pressable,
   FlatList,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import GoalCard from "@/components/GoalCard";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
 import SafeLockModal from "@/components/Modal";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { createSafeLock, fetchSafeLocks } from "../../services/goals";
+import { getToken } from "@/services/auth"; 
+
+type Goal = {
+  id: string;
+  goal_name: string;
+  target_amount: number;
+  current_amount: number;
+  target_date: string;
+  emergency_fund_percentage: number;
+  [key: string]: any; 
+};
 
 const SaveLock = () => {
   const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
   const [showModal, setShowModal] = useState(false);
-  const [goals, setGoals] = useState({
-    active: [
-      {
-        id: 1,
-        title: "Rent",
-        amount: 4000,
-        percentage: 47,
-        targetDate: "Fri May 23 2025",
-        emergencyFund: 10,
-      },
-      {
-        id: 2,
-        title: "Laptop",
-        amount: 890,
-        percentage: 17,
-        targetDate: "Fri May 23 2025",
-        emergencyFund: 10,
-      },
-    ],
-    completed: [
-      {
-        id: 3,
-        title: "Phone",
-        amount: 2000,
-        percentage: 100,
-        targetDate: "Fri May 23 2025",
-        emergencyFund: 10,
-      },
-      {
-        id: 4,
-        title: "Bills",
-        amount: 1200,
-        percentage: 100,
-        targetDate: "Fri May 23 2025",
-        emergencyFund: 10,
-      },
-    ],
+  const [loading, setLoading] = useState(true);
+  const [goals, setGoals] = useState<{
+    active: Goal[];
+    completed: Goal[];
+  }>({
+    active: [],
+    completed: [],
   });
+
+
+  useEffect(() => {
+    const loadGoals = async () => {
+      try {
+        const token = await getToken();
+        const data: Goal[] = await fetchSafeLocks(token);
+
+        const active = data.filter((goal: Goal) => {
+          const today = new Date();
+          const target = new Date(goal.target_date);
+          return goal.current_amount < goal.target_amount && target >= today;
+        });
+
+        const completed = data.filter(
+          (goal: Goal) => goal.current_amount >= goal.target_amount
+        );
+
+        setGoals({ active, completed });
+      } catch (err) {
+        console.error("Failed to load goals:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadGoals();
+  }, []);
+
+  const handleCreateGoal = async (newGoal: {
+    title: string;
+    amount: number;
+    percentage: number;
+    emergencyFund?: number;
+    targetDate: string;
+  }) => {
+    try {
+      const token = await getToken();
+
+      const hasEmergency = !!newGoal.emergencyFund && newGoal.emergencyFund > 0;
+
+      const payload: {
+        goal_name: string;
+        target_amount: number;
+        target_date: string;
+        has_emergency_fund: boolean;
+        agree_to_lock: boolean;
+        emergency_fund_percentage?: number;
+      } = {
+        goal_name: newGoal.title,
+        target_amount: newGoal.amount,
+        target_date: new Date(newGoal.targetDate).toISOString(),
+        has_emergency_fund: hasEmergency,
+        agree_to_lock: true,
+      };
+
+      if (hasEmergency) {
+        payload.emergency_fund_percentage = newGoal.emergencyFund;
+      }
+
+      const created = await createSafeLock(payload, token);
+
+      setGoals((prev) => ({
+        ...prev,
+        active: [...prev.active, created],
+      }));
+
+      setShowModal(false);
+    } catch (err) {
+      console.error("Failed to create goal:", err);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => router.back()}
-      >
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Feather name="arrow-left" size={24} color="#000" />
       </TouchableOpacity>
 
@@ -87,31 +139,49 @@ const SaveLock = () => {
         ))}
       </View>
 
-      <FlatList
-        data={goals[activeTab]}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={() =>
-              router.push({
-                pathname: "/noTabScreens/[id]",
-                params: {
-                  id: item.id.toString(),
-                  title: item.title,
-                  amount: item.amount.toString(),
-                  percentage: item.percentage.toString(),
-                  targetDate: item.targetDate,
-                  emergencyFund: item.emergencyFund.toString(),
-                },
-              })
-            }
-          >
-            <GoalCard {...item} />
-          </Pressable>
-        )}
-        contentContainerStyle={{ paddingBottom: 100 }}
-        showsVerticalScrollIndicator={false}
-      />
+      {loading ? (
+        <ActivityIndicator size="large" color={AppColors.primary} />
+      ) : goals[activeTab].length === 0 ? (
+        <View style={styles.noGoalsContainer}>
+          <Text style={styles.noGoalsText}>No goals yet</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={goals[activeTab]}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <Pressable
+              onPress={() =>
+                router.push({
+                  pathname: "/noTabScreens/[id]",
+                  params: {
+                    id: item.id,
+                    title: item.goal_name,
+                    amount: item.target_amount.toString(),
+                    percentage: (
+                      (item.current_amount / item.target_amount) *
+                      100
+                    ).toFixed(0),
+                    targetDate: new Date(item.target_date).toDateString(),
+                    emergencyFund:
+                      item.emergency_fund_percentage?.toString() ?? "0",
+                  },
+                })
+              }
+            >
+              <GoalCard
+                title={item.goal_name}
+                amount={item.target_amount}
+                percentage={(item.current_amount / item.target_amount) * 100}
+                targetDate={new Date(item.target_date).toDateString()}
+                emergencyFund={item.emergency_fund_percentage ?? 0}
+              />
+            </Pressable>
+          )}
+          contentContainerStyle={{ paddingBottom: 100 }}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
 
       {activeTab === "active" && (
         <Pressable onPress={() => setShowModal(true)} style={styles.fab}>
@@ -122,26 +192,7 @@ const SaveLock = () => {
       <SafeLockModal
         visible={showModal}
         onClose={() => setShowModal(false)}
-        onCreateGoal={(newGoal) => {
-          setGoals((prev) => ({
-            ...prev,
-            active: [
-              ...prev.active,
-              {
-                ...newGoal,
-                id:
-                  prev.active.length > 0
-                    ? Math.max(...prev.active.map((g) => g.id)) + 1
-                    : 1,
-                emergencyFund:
-                  newGoal.emergencyFund !== undefined
-                    ? newGoal.emergencyFund
-                    : 0,
-              },
-            ],
-          }));
-          setShowModal(false);
-        }}
+        onCreateGoal={handleCreateGoal}
         showEmergencyOptions={true}
       />
     </View>
@@ -150,6 +201,7 @@ const SaveLock = () => {
 
 export default SaveLock;
 
+// Style unchanged
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -209,5 +261,16 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 28,
     lineHeight: 32,
+  },
+  noGoalsContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 100,
+  },
+  noGoalsText: {
+    fontSize: 16,
+    color: AppColors.grey,
+    fontFamily: Fonts.bodyBold,
   },
 });
