@@ -20,6 +20,7 @@ import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
 import { registerUser } from "@/services/auth";
 import { StatusBar } from "expo-status-bar";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 export default function SignupScreen() {
@@ -43,7 +44,6 @@ export default function SignupScreen() {
   const [showGenderOptions, setShowGenderOptions] = useState(false);
   const genderOptions = ["Male", "Female", "Other"];
 
-  // Date picker
   const [showDateModal, setShowDateModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
@@ -97,7 +97,8 @@ export default function SignupScreen() {
               onChangeText={(text) => handleChange("last_name", text)}
             />
 
-            {/* Gender Dropdown */}
+          
+          
             <View style={{ marginBottom: 16 }}>
               <TouchableOpacity
                 onPress={() => setShowGenderOptions((prev) => !prev)}
@@ -120,7 +121,8 @@ export default function SignupScreen() {
                 />
               </TouchableOpacity>
 
-              {/* Dropdown Options */}
+       
+      
               {showGenderOptions && (
                 <View style={styles.dropdownOptions}>
                   {genderOptions.map((option) => (
@@ -139,7 +141,7 @@ export default function SignupScreen() {
               )}
             </View>
 
-            {/* Date Picker input */}
+
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setShowDateModal(true)}
@@ -152,7 +154,7 @@ export default function SignupScreen() {
               />
             </TouchableOpacity>
 
-            {/* Date Picker Modal */}
+
             {showDateModal && (
               <DateTimePicker
                 value={
@@ -250,7 +252,18 @@ export default function SignupScreen() {
                   };
 
                   const res = await registerUser(formData);
-                  console.log("Registration Success", res);
+
+                  if (res?.access_token) {
+                    await AsyncStorage.setItem("accessToken", res.access_token);
+                  }
+
+                  if (res?.first_name) {
+                    await AsyncStorage.setItem(
+                      "user_first_name",
+                      res.first_name
+                    );
+                  }
+
                   router.push({
                     pathname: "/verification",
                     params: { email: form.email },
@@ -264,7 +277,6 @@ export default function SignupScreen() {
                     if (typeof detail === "string") {
                       errorMessage = detail;
                     } else if (Array.isArray(detail)) {
-                      
                       errorMessage = detail
                         .map((err: any) => err.msg)
                         .join("\n");
@@ -274,7 +286,7 @@ export default function SignupScreen() {
                   }
 
                   console.error("Registration Error:", errorMessage);
-                  alert(errorMessage); 
+                  alert(errorMessage);
                 }
               }}
             />
@@ -282,7 +294,7 @@ export default function SignupScreen() {
         </KeyboardAwareScrollView>
       </TouchableWithoutFeedback>
 
-      <StatusBar style='dark'/>
+      <StatusBar style="dark" />
     </KeyboardAvoidingView>
   );
 }

@@ -44,17 +44,36 @@ const SaveLock = () => {
     const loadGoals = async () => {
       try {
         const token = await getToken();
+
+        console.log("token: ", token);
+        
+
+        if (!token) {
+          console.warn("Token not ready yet, retrying...");
+          setTimeout(loadGoals, 1000); 
+          return;
+        }
+
         const data: Goal[] = await fetchSafeLocks(token);
 
+        console.log("all goal: ", data, data.length);
+
+        const today = new Date();
+
         const active = data.filter((goal: Goal) => {
-          const today = new Date();
           const target = new Date(goal.target_date);
           return goal.current_amount < goal.target_amount && target >= today;
         });
 
+        console.log("active goal: ", active, active.length);
+
+
         const completed = data.filter(
           (goal: Goal) => goal.current_amount >= goal.target_amount
         );
+
+        console.log("completed goal: ", completed);
+
 
         setGoals({ active, completed });
       } catch (err) {
@@ -201,7 +220,6 @@ const SaveLock = () => {
 
 export default SaveLock;
 
-// Style unchanged
 const styles = StyleSheet.create({
   container: {
     flex: 1,

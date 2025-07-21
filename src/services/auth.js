@@ -6,7 +6,6 @@ import * as SecureStore from "expo-secure-store";
 
 const TOKEN_KEY = "user_token";
 
-// ✅ Save token to device
 export const saveToken = async (token) => {
   try {
     await SecureStore.setItemAsync(TOKEN_KEY, token);
@@ -15,7 +14,7 @@ export const saveToken = async (token) => {
   }
 };
 
-// ✅ Get token from device
+
 export const getToken = async () => {
   try {
     const token = await SecureStore.getItemAsync(TOKEN_KEY);
@@ -33,15 +32,14 @@ export const registerUser = async (userData) => {
   try {
     const response = await api.post("/register", userData);
 
-    const token = response.data.access_token; // ✅ Make sure backend sends this
+    const token = response.data.access_token; 
     const firstName = response.data.first_name;
 
-    // ✅ Save token securely
+   
     if (token) {
       await saveToken(token);
     }
 
-    // ✅ Save first name to AsyncStorage (optional for greeting)
     if (firstName) {
       await AsyncStorage.setItem("user_first_name", firstName);
     }
@@ -78,13 +76,13 @@ export const setUserPin = async (email, pin) => {
 
 
 export const loginUser = async (email, password) => {
-  console.log("Sending login request:", { email, password }); // ✅ debug line
+  console.log("Sending login request:", { email, password }); 
 
   const res = await api.post("/login", {
     email,
     password,
   });
-
+  console.log("login res: ",res.data)
   const token = res.data.access_token;
   await saveToken(token);
   return res.data;

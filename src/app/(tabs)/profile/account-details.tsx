@@ -1,27 +1,77 @@
-// AccountDetailsScreen.tsx
 import InfoCard from "@/components/InfoCard";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
-import React from "react";
-import { View, Text, StyleSheet, ScrollView, SafeAreaView } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  ActivityIndicator,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getCurrentUser } from "@/services/user"; 
+import moment from "moment";
+
+type User = {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  date_of_birth: string;
+};
 
 const AccountDetailsScreen = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const token = await AsyncStorage.getItem("accessToken");
+        if (token) {
+          const userData = await getCurrentUser();
+          setUser(userData);
+        }
+      } catch (error) {
+        console.error("Failed to load user:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUser();
+  }, []);
+
+  console.log("User:", user);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color={AppColors.primary} />
+      </SafeAreaView>
+    );
+  }
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.header}>Failed to load user</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.header}>Account Details</Text>
 
-      <InfoCard label="First Name" value="Paulson" />
-      <InfoCard label="Last Name" value="Gray" />
+      <InfoCard label="First Name" value={user.first_name} />
+      <InfoCard label="Last Name" value={user.last_name} />
+      <InfoCard label="Email" value={user.email} />
+      <InfoCard label="Phone number" value={user.phone_number} />
       <InfoCard
-        label="Email"
-        value="paulson@gmail.com"
-        isEditable
-        onPress={() => {
-          console.log("Edit email");
-        }}
+        label="Date of birth"
+        value={moment(user.date_of_birth).format("D MMMM YYYY")} // e.g. "21 July 2002"
       />
-      <InfoCard label="Phone number" value="0557337520" />
-      <InfoCard label="Date of birth" value="15 March 1990" />
       <InfoCard
         label="Update Password"
         value=""

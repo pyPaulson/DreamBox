@@ -1,13 +1,42 @@
-import { StyleSheet, Text, View, Image, } from "react-native";
-import React from "react";
+import { StyleSheet, Text, View, Image, ActivityIndicator, } from "react-native";
+import React, { useEffect, useState } from "react";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
 import SettingCard from "@/components/SettingsCard";
 import { MaterialIcons, FontAwesome5, Feather } from "@expo/vector-icons";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getCurrentUser } from "@/services/user";
+
+type User = {
+  first_name: string;
+  last_name: string;
+  phone_number: string;
+};
 
 const ProfileScreen = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const token = await AsyncStorage.getItem("accessToken");
+        if (token) {
+          const userData = await getCurrentUser(); // Already includes token
+          setUser(userData);
+        }
+      } catch (error) {
+        console.error("Failed to load user:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUser();
+  }, []);
+  
   return (
     <View style={styles.container}>
       <View style={styles.topSec}>
@@ -16,15 +45,28 @@ const ProfileScreen = () => {
           source={{ uri: "https://i.pravatar.cc/150?img=12" }}
           style={styles.avatar}
         />
-        <Text style={styles.name}>User User</Text>
-        <Text style={styles.phone}>0557337520</Text>
+        {loading ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : user ? (
+          <>
+            <Text style={styles.name}>
+              {user.first_name} {user.last_name}
+            </Text>
+            <Text style={styles.phone}>{user.phone_number}</Text>
+          </>
+        ) : (
+          <>
+            <Text style={styles.name}>Unknown User</Text>
+            <Text style={styles.phone}>N/A</Text>
+          </>
+        )}
       </View>
       <View style={styles.bottomSec}>
         <SettingCard
           icon={<MaterialIcons name="person" size={22} color="#023e8a" />}
           label="Account Details"
           onPress={() => {
-            router.push("/(tabs)/profile/account-details")
+            router.push("/(tabs)/profile/account-details");
           }}
         />
         <SettingCard
@@ -40,14 +82,14 @@ const ProfileScreen = () => {
           icon={<Feather name="file-text" size={20} color="#023e8a" />}
           label="Account Statement"
           onPress={() => {
-            router.push("/(tabs)/profile/account-statement")
+            router.push("/(tabs)/profile/account-statement");
           }}
         />
         <SettingCard
           icon={<MaterialIcons name="security" size={20} color="#023e8a" />}
           label="Security"
           onPress={() => {
-            router.push("/(tabs)/profile/security")
+            router.push("/(tabs)/profile/security");
           }}
         />
         <SettingCard
@@ -59,7 +101,7 @@ const ProfileScreen = () => {
           icon={<MaterialIcons name="privacy-tip" size={20} color="#023e8a" />}
           label="Privacy Policy"
           onPress={() => {
-            router.push("/(tabs)/profile/privacy")
+            router.push("/(tabs)/profile/privacy");
           }}
         />
         <SettingCard
