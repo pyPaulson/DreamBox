@@ -70,7 +70,7 @@ const AccountDetailsScreen = () => {
       <InfoCard label="Phone number" value={user.phone_number} />
       <InfoCard
         label="Date of birth"
-        value={moment(user.date_of_birth).format("D MMMM YYYY")} // e.g. "21 July 2002"
+        value={moment(user.date_of_birth).format("D MMMM YYYY")} 
       />
       <InfoCard
         label="Update Password"

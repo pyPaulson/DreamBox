@@ -24,7 +24,7 @@ const ProfileScreen = () => {
       try {
         const token = await AsyncStorage.getItem("accessToken");
         if (token) {
-          const userData = await getCurrentUser(); // Already includes token
+          const userData = await getCurrentUser(); 
           setUser(userData);
         }
       } catch (error) {
