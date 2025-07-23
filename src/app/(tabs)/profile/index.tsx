@@ -72,6 +72,9 @@ const ProfileScreen = () => {
         <SettingCard
           icon={<FontAwesome5 name="wallet" size={20} color="#023e8a" />}
           label="Wallets"
+          onPress={() => {
+            router.push("/noTabScreens/profileScreens/wallets");
+          }}
         />
         <SettingCard
           icon={<Feather name="bell" size={20} color="#023e8a" />}
@@ -96,7 +99,7 @@ const ProfileScreen = () => {
           icon={<MaterialIcons name="menu-book" size={20} color="#023e8a" />}
           label="Terms and conditions"
           onPress={() => {
-            router.push("/noTabScreens/profileScreens/privacy");
+            router.push("/noTabScreens/profileScreens/terms-and-condition");
           }}
         />
         <SettingCard
@@ -123,23 +126,23 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.primary,
   },
   topSec: {
-    flex: 1.2,
+    flex: 1.6,
     paddingTop: 60,
     alignItems: "center",
   },
   header: {
     color: AppColors.text_three,
-    fontSize: 23,
+    fontSize: 20,
     fontFamily: Fonts.bodyBold,
-    marginBottom: 10,
+    marginBottom: 20,
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 150,
+    height: 150,
+    borderRadius: 100,
   },
   name: {
-    marginTop: 10,
+    marginTop: 13,
     color: AppColors.text_three,
     fontFamily: Fonts.bodyBold,
     fontSize: 16,
