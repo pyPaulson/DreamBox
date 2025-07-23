@@ -66,12 +66,12 @@ const ProfileScreen = () => {
           icon={<MaterialIcons name="person" size={22} color="#023e8a" />}
           label="Account Details"
           onPress={() => {
-            router.push("/(tabs)/profile/account-details");
+            router.push("/noTabScreens/profileScreens/account-details");
           }}
         />
         <SettingCard
-          icon={<FontAwesome5 name="id-card" size={20} color="#023e8a" />}
-          label="KYC"
+          icon={<FontAwesome5 name="wallet" size={20} color="#023e8a" />}
+          label="Wallets"
         />
         <SettingCard
           icon={<Feather name="bell" size={20} color="#023e8a" />}
@@ -82,26 +82,28 @@ const ProfileScreen = () => {
           icon={<Feather name="file-text" size={20} color="#023e8a" />}
           label="Account Statement"
           onPress={() => {
-            router.push("/(tabs)/profile/account-statement");
+            router.push("/noTabScreens/profileScreens/account-statement");
           }}
         />
         <SettingCard
           icon={<MaterialIcons name="security" size={20} color="#023e8a" />}
           label="Security"
           onPress={() => {
-            router.push("/(tabs)/profile/security");
+            router.push("/noTabScreens/profileScreens/security");
           }}
         />
         <SettingCard
-          icon={<Feather name="moon" size={20} color="#023e8a" />}
-          label="Enable dark mode"
-          rightElement={<ToggleSwitch />}
+          icon={<MaterialIcons name="menu-book" size={20} color="#023e8a" />}
+          label="Terms and conditions"
+          onPress={() => {
+            router.push("/noTabScreens/profileScreens/privacy");
+          }}
         />
         <SettingCard
           icon={<MaterialIcons name="privacy-tip" size={20} color="#023e8a" />}
           label="Privacy Policy"
           onPress={() => {
-            router.push("/(tabs)/profile/privacy");
+            router.push("/noTabScreens/profileScreens/privacy");
           }}
         />
         <SettingCard

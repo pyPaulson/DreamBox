@@ -19,7 +19,7 @@ const SavingScreen = () => {
         }
         icon="lock-outline"
         onPress={() => {
-          router.push("/noTabScreens/safeLock");
+          router.push("/noTabScreens/plansScreens/safeLock");
         }}
       />
       <PlanItem
@@ -29,7 +29,7 @@ const SavingScreen = () => {
         }
         icon="my-location"
         onPress={() => {
-          router.push("/noTabScreens/myGoal");
+          router.push("/noTabScreens/plansScreens/myGoal");
         }}
       />
       <PlanItem
@@ -39,7 +39,7 @@ const SavingScreen = () => {
         }
         icon="add-box"
         onPress={() => {
-          router.push("/noTabScreens/flexi");
+          router.push("/noTabScreens/plansScreens/flexi");
         }}
       />
       <PlanItem
@@ -49,7 +49,7 @@ const SavingScreen = () => {
         }
         icon="emergency"
         onPress={() => {
-          router.push("/noTabScreens/emergency");
+          router.push("/noTabScreens/plansScreens/emergency");
         }}
       />
     </SafeAreaView>

@@ -14,8 +14,8 @@ import Fonts from "@/constants/Fonts";
 import SafeLockModal from "@/components/Modal";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { createSafeLock, fetchSafeLocks } from "../../services/goals";
-import { getToken } from "@/services/auth"; 
+import { createSafeLock, fetchSafeLocks } from "../../../services/goals";
+import { getToken } from "@/services/auth";
 
 type Goal = {
   id: string;
@@ -24,7 +24,7 @@ type Goal = {
   current_amount: number;
   target_date: string;
   emergency_fund_percentage: number;
-  [key: string]: any; 
+  [key: string]: any;
 };
 
 const SaveLock = () => {
@@ -39,18 +39,16 @@ const SaveLock = () => {
     completed: [],
   });
 
-
   useEffect(() => {
     const loadGoals = async () => {
       try {
         const token = await getToken();
 
         console.log("token: ", token);
-        
 
         if (!token) {
           console.warn("Token not ready yet, retrying...");
-          setTimeout(loadGoals, 1000); 
+          setTimeout(loadGoals, 1000);
           return;
         }
 
@@ -67,13 +65,11 @@ const SaveLock = () => {
 
         console.log("active goal: ", active, active.length);
 
-
         const completed = data.filter(
           (goal: Goal) => goal.current_amount >= goal.target_amount
         );
 
         console.log("completed goal: ", completed);
-
 
         setGoals({ active, completed });
       } catch (err) {
@@ -172,7 +168,7 @@ const SaveLock = () => {
             <Pressable
               onPress={() =>
                 router.push({
-                  pathname: "/noTabScreens/[id]",
+                  pathname: "./[id].tsx",
                   params: {
                     id: item.id,
                     title: item.goal_name,

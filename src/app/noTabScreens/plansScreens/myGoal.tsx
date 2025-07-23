@@ -84,7 +84,7 @@ const GoalScreen = () => {
           <Pressable
             onPress={() =>
               router.push({
-                pathname: "/noTabScreens/[id]",
+                pathname: "/noTabScreens/plansScreens/[id]",
                 params: {
                   id: item.id.toString(),
                   title: item.title,

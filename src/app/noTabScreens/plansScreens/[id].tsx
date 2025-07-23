@@ -3,7 +3,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
