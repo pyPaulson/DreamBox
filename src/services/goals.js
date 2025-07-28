@@ -19,3 +19,13 @@ export const fetchSafeLocks = async (token) => {
   });
   return res.data;
 };
+
+export const getMyGoals = async () => {
+  const res = await api.get("/goals/my-Goals");
+  return res.data;
+};
+
+export const createMyGoal = async (data) => {
+  const res = await api.post("/goals/", data);
+  return res.data;
+};
