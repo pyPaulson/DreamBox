@@ -13,6 +13,7 @@ import Fonts from "@/constants/Fonts";
 import SafeLockModal from "@/components/Modal";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 
 const GoalScreen = () => {
   const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
@@ -126,6 +127,9 @@ const GoalScreen = () => {
           setShowModal(false);
         }}
       />
+
+      <StatusBar style="dark" />
+      
     </View>
   );
 };
