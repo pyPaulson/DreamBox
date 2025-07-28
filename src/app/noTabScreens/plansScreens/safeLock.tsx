@@ -209,6 +209,7 @@ const SaveLock = () => {
         onClose={() => setShowModal(false)}
         onCreateGoal={handleCreateGoal}
         showEmergencyOptions={true}
+        showConfirmationCheckbox={true}
       />
     </View>
   );

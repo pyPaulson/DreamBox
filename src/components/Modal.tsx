@@ -28,6 +28,7 @@ type Props = {
     targetDate: string;
   }) => void;
   showEmergencyOptions?: boolean;
+  showConfirmationCheckbox?: boolean;
 };
 
 const SafeLockModal = ({
@@ -35,6 +36,7 @@ const SafeLockModal = ({
   onClose,
   onCreateGoal,
   showEmergencyOptions,
+  showConfirmationCheckbox,
 }: Props) => {
   const [planName, setPlanName] = useState("");
   const [amount, setAmount] = useState("");
@@ -44,7 +46,6 @@ const SafeLockModal = ({
   const [percentage, setPercentage] = useState("10%");
   const [showDropdown, setShowDropdown] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
-
 
   const resetForm = () => {
     setPlanName("");
@@ -58,10 +59,10 @@ const SafeLockModal = ({
 
   useEffect(() => {
     if (!visible) {
-      resetForm(); // this clears the form
+      resetForm();
     }
   }, [visible]);
-  
+
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>
@@ -70,7 +71,10 @@ const SafeLockModal = ({
           style={styles.keyboardView}
         >
           <View style={styles.modalContainer}>
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+            <ScrollView
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
               <Text style={styles.title}>Create a Plan</Text>
 
               <FormInput
@@ -166,36 +170,46 @@ const SafeLockModal = ({
               )}
 
               <View style={styles.checkboxRow}>
-                <Pressable
-                  onPress={() => setConfirmed(!confirmed)}
-                  style={({ pressed }) => [
-                    {
-                      flexDirection: "row",
-                      alignItems: "center",
-                      backgroundColor: confirmed
-                        ? AppColors.background_one
-                        : "transparent",
-                      padding: 5,
-                      borderRadius: 8,
-                    },
-                    pressed && { opacity: 0.7 },
-                  ]}
-                >
-                  <Ionicons
-                    name={confirmed ? "checkbox" : "square-outline"}
-                    size={24}
-                    color={AppColors.primary}
-                  />
-                  <Text style={styles.checkboxText}>
-                    I understand I cannot withdraw this money until it unlocks
-                  </Text>
-                </Pressable>
+                {showConfirmationCheckbox && (
+                  <View style={styles.checkboxRow}>
+                    <Pressable
+                      onPress={() => setConfirmed(!confirmed)}
+                      style={({ pressed }) => [
+                        {
+                          flexDirection: "row",
+                          alignItems: "center",
+                          backgroundColor: confirmed
+                            ? AppColors.background_one
+                            : "transparent",
+                          padding: 5,
+                          borderRadius: 8,
+                        },
+                        pressed && { opacity: 0.7 },
+                      ]}
+                    >
+                      <Ionicons
+                        name={confirmed ? "checkbox" : "square-outline"}
+                        size={24}
+                        color={AppColors.primary}
+                      />
+                      <Text style={styles.checkboxText}>
+                        I understand I cannot withdraw this money until it
+                        unlocks
+                      </Text>
+                    </Pressable>
+                  </View>
+                )}
               </View>
 
               <FormButton
                 title="Create Plan"
                 onPress={() => {
-                  if (!planName || !amount || !confirmed) return;
+                  if (
+                    !planName ||
+                    !amount ||
+                    (showConfirmationCheckbox && !confirmed)
+                  )
+                    return;
 
                   const newGoal: any = {
                     title: planName,
@@ -312,7 +326,7 @@ const styles = StyleSheet.create({
   checkboxRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 20,
+    marginVertical: 10,
   },
   checkboxText: {
     flex: 1,
