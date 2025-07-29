@@ -88,5 +88,32 @@ export const loginUser = async (email, password) => {
   return res.data;
 };
 
+export const logoutUser = async () => {
+  try {
+    const token = await getToken();
+
+    if (token) {
+      await api.post(
+        "/logout",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+    }
+
+    await SecureStore.deleteItemAsync("user_token");
+    await AsyncStorage.removeItem("user_first_name");
+
+    return true;
+  } catch (error) {
+    console.error("Logout failed:", error.response?.data || error.message);
+    return false;
+  }
+};
+
+
 
 

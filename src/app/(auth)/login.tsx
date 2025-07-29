@@ -39,7 +39,7 @@ export default function LoginScreen() {
         if (response.first_name) {
           await AsyncStorage.setItem("user_first_name", response.first_name);
         }
-        router.push("/(tabs)");
+        router.replace("/(tabs)");
       } else {
         setEmailError(true);
         setPasswordError(true);

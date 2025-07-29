@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Image, ActivityIndicator, } from "react-native";
+import { StyleSheet, Text, View, Image, ActivityIndicator, Alert, } from "react-native";
 import React, { useEffect, useState } from "react";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
@@ -8,6 +8,7 @@ import ToggleSwitch from "@/components/ToggleSwitch";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getCurrentUser } from "@/services/user";
+import { logoutUser } from "@/services/auth";
 
 type User = {
   first_name: string;
@@ -36,7 +37,33 @@ const ProfileScreen = () => {
 
     loadUser();
   }, []);
-  
+
+  const handleLogout = () => {
+    Alert.alert(
+      "Log Out",
+      "Are you sure you want to log out?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Log Out",
+          style: "destructive",
+          onPress: async () => {
+            const success = await logoutUser();
+            if (success) {
+              await AsyncStorage.removeItem("accessToken");
+              router.replace("/(auth)/login");
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+
   return (
     <View style={styles.container}>
       <View style={styles.topSec}>
@@ -112,6 +139,7 @@ const ProfileScreen = () => {
         <SettingCard
           icon={<MaterialIcons name="logout" size={20} color="red" />}
           label="Log out"
+          onPress={handleLogout}
         />
       </View>
     </View>
