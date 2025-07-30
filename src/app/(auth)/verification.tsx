@@ -12,6 +12,7 @@ export default function VerificationScreen() {
   const params = useLocalSearchParams();
   const email = typeof params.email === "string" ? params.email : "";
   const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (email) {
@@ -28,16 +29,20 @@ export default function VerificationScreen() {
     if (!code || !email) {
       return Alert.alert("Missing Info", "Code or email is missing");
     }
-    
+
+    setLoading(true);
+
     try {
       const res = await verifyEmail({ email, code });
+
       Alert.alert("Success", res.message, [
         {
           text: "OK",
-          onPress: () => router.replace({
-            pathname: "/create-pin",
-            params: { email },
-          }),
+          onPress: () =>
+            router.replace({
+              pathname: "/create-pin",
+              params: { email },
+            }),
         },
       ]);
     } catch (error) {
@@ -57,6 +62,8 @@ export default function VerificationScreen() {
         message = (error as any).response.data.detail;
       }
       Alert.alert("Error", message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -117,7 +124,7 @@ export default function VerificationScreen() {
         </Text>
       </Text>
 
-      <FormButton title="Verify" onPress={handleVerify} />
+      <FormButton title="Verify" onPress={handleVerify} loading={loading} />
     </View>
   );
 }

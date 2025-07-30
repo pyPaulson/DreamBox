@@ -14,8 +14,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
-import { loginUser } from '@/services/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage'; 
+import { loginUser } from "@/services/auth";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -35,16 +34,14 @@ export default function LoginScreen() {
       const response = await loginUser(email, password);
 
       if (response?.access_token) {
-        await AsyncStorage.setItem("accessToken", response.access_token);
-        if (response.first_name) {
-          await AsyncStorage.setItem("user_first_name", response.first_name);
-        }
+        console.log("Login successful, navigating to tabs");
         router.replace("/(tabs)");
       } else {
         setEmailError(true);
         setPasswordError(true);
       }
     } catch (error) {
+      console.error("Login error:", error);
       setEmailError(true);
       setPasswordError(true);
     } finally {
@@ -111,16 +108,18 @@ export default function LoginScreen() {
             customLabel="Incorrect password"
           />
 
-          <TouchableOpacity onPress={() => {
-            router.push("/forgot-password")
-          }}>
+          <TouchableOpacity
+            onPress={() => {
+              router.push("/forgot-password");
+            }}
+          >
             <Text style={styles.forgot}>Forgot Password?</Text>
           </TouchableOpacity>
 
           <FormButton title="Login" onPress={handleLogin} loading={loading} />
 
           <Text style={styles.signupPrompt}>
-            Don’t have an account?{" "}
+            Don't have an account?{" "}
             <Text
               style={styles.signupLink}
               onPress={() => router.push("../signup")}

@@ -1,9 +1,8 @@
-// services/user.js
 import api from "./api";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getToken } from "./auth";
 
 export const getCurrentUser = async () => {
-  const token = await AsyncStorage.getItem("accessToken");
+  const token = await getToken();
   if (!token) throw new Error("No token found");
 
   const response = await api.get("/me", {

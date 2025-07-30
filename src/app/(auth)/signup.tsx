@@ -7,6 +7,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Feather } from "@expo/vector-icons";
@@ -18,10 +19,8 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { format } from "date-fns";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
-import { registerUser } from "@/services/auth";
+import { registerUser } from "@/services/auth"; // No need to import saveToken separately
 import { StatusBar } from "expo-status-bar";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -40,6 +39,7 @@ export default function SignupScreen() {
   const [agree, setAgree] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [showGenderOptions, setShowGenderOptions] = useState(false);
   const genderOptions = ["Male", "Female", "Other"];
@@ -57,6 +57,93 @@ export default function SignupScreen() {
       handleChange("date_of_birth", format(date, "yyyy-MM-dd"));
     }
     setShowDateModal(false);
+  };
+
+  const validateForm = () => {
+    if (!form.first_name.trim()) {
+      Alert.alert("Error", "First name is required");
+      return false;
+    }
+    if (!form.last_name.trim()) {
+      Alert.alert("Error", "Last name is required");
+      return false;
+    }
+    if (!form.gender) {
+      Alert.alert("Error", "Please select your gender");
+      return false;
+    }
+    if (!form.date_of_birth) {
+      Alert.alert("Error", "Date of birth is required");
+      return false;
+    }
+    if (!form.phone_number.trim()) {
+      Alert.alert("Error", "Phone number is required");
+      return false;
+    }
+    if (!form.email.trim()) {
+      Alert.alert("Error", "Email is required");
+      return false;
+    }
+    if (!form.password.trim()) {
+      Alert.alert("Error", "Password is required");
+      return false;
+    }
+    if (form.password !== form.confirm_password) {
+      Alert.alert("Error", "Passwords do not match");
+      return false;
+    }
+    if (!agree) {
+      Alert.alert("Error", "Please agree to the terms and conditions");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSignup = async () => {
+    if (!validateForm()) return;
+
+    setLoading(true);
+
+    try {
+      const formData = {
+        ...form,
+        agree_terms: Boolean(agree),
+      };
+
+      console.log("Starting registration...");
+      const res = await registerUser(formData);
+      
+      console.log("Registration successful, navigating to verification");
+      
+      router.push({
+        pathname: "/verification",
+        params: {
+          email: form.email,
+        },
+      });
+    } catch (error: any) {
+      console.error("Registration Error:", error);
+      
+      let errorMessage = "Registration failed";
+
+      if (error?.response?.data) {
+        const detail = error.response.data.detail;
+
+        if (typeof detail === "string") {
+          errorMessage = detail;
+        } else if (Array.isArray(detail)) {
+          errorMessage = detail
+            .map((err: any) => err.msg || err.message || "Validation error")
+            .join("\n");
+        }
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      Alert.alert("Registration Failed", errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -82,7 +169,7 @@ export default function SignupScreen() {
 
             <Text style={styles.title}>Personal Details</Text>
             <Text style={styles.subtitle}>
-              Ensure you enter correct details. You won’t be able to change this
+              Ensure you enter correct details. You won't be able to change this
               once you submit
             </Text>
 
@@ -97,8 +184,6 @@ export default function SignupScreen() {
               onChangeText={(text) => handleChange("last_name", text)}
             />
 
-          
-          
             <View style={{ marginBottom: 16 }}>
               <TouchableOpacity
                 onPress={() => setShowGenderOptions((prev) => !prev)}
@@ -121,8 +206,6 @@ export default function SignupScreen() {
                 />
               </TouchableOpacity>
 
-       
-      
               {showGenderOptions && (
                 <View style={styles.dropdownOptions}>
                   {genderOptions.map((option) => (
@@ -141,7 +224,6 @@ export default function SignupScreen() {
               )}
             </View>
 
-
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setShowDateModal(true)}
@@ -153,7 +235,6 @@ export default function SignupScreen() {
                 icon={<Feather name="calendar" size={20} color="#999" />}
               />
             </TouchableOpacity>
-
 
             {showDateModal && (
               <DateTimePicker
@@ -244,51 +325,8 @@ export default function SignupScreen() {
 
             <FormButton
               title="Continue"
-              onPress={async () => {
-                try {
-                  const formData = {
-                    ...form,
-                    agree_terms: Boolean(agree),
-                  };
-
-                  const res = await registerUser(formData);
-
-                  if (res?.access_token) {
-                    await AsyncStorage.setItem("accessToken", res.access_token);
-                  }
-
-                  if (res?.first_name) {
-                    await AsyncStorage.setItem(
-                      "user_first_name",
-                      res.first_name
-                    );
-                  }
-
-                  router.push({
-                    pathname: "/verification",
-                    params: { email: form.email },
-                  });
-                } catch (error: any) {
-                  let errorMessage = "Registration failed";
-
-                  if (error?.response?.data) {
-                    const detail = error.response.data.detail;
-
-                    if (typeof detail === "string") {
-                      errorMessage = detail;
-                    } else if (Array.isArray(detail)) {
-                      errorMessage = detail
-                        .map((err: any) => err.msg)
-                        .join("\n");
-                    }
-                  } else if (error?.message) {
-                    errorMessage = error.message;
-                  }
-
-                  console.error("Registration Error:", errorMessage);
-                  alert(errorMessage);
-                }
-              }}
+              onPress={handleSignup}
+              loading={loading}
             />
           </View>
         </KeyboardAwareScrollView>

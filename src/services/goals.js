@@ -26,6 +26,6 @@ export const getMyGoals = async () => {
 };
 
 export const createMyGoal = async (data) => {
-  const res = await api.post("/goals/", data);
+  const res = await api.post("/goals/create-myGoal", data);
   return res.data;
 };

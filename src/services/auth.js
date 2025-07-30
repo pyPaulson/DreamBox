@@ -3,7 +3,6 @@ import api from "./api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 
-
 const TOKEN_KEY = "user_token";
 
 export const saveToken = async (token) => {
@@ -13,7 +12,6 @@ export const saveToken = async (token) => {
     console.error("Error saving token:", error);
   }
 };
-
 
 export const getToken = async () => {
   try {
@@ -25,24 +23,34 @@ export const getToken = async () => {
   }
 };
 
-
-
+export const clearAllUserData = async () => {
+  try {
+    await SecureStore.deleteItemAsync("user_token");
+    await AsyncStorage.removeItem("user_first_name");
+    await AsyncStorage.removeItem("accessToken");
+    console.log("All user data cleared");
+  } catch (error) {
+    console.error("Error clearing user data:", error);
+  }
+};
 
 export const registerUser = async (userData) => {
   try {
     const response = await api.post("/register", userData);
 
-    const token = response.data.access_token; 
+    const token = response.data.access_token;
     const firstName = response.data.first_name;
 
-   
     if (token) {
       await saveToken(token);
+      await AsyncStorage.setItem("accessToken", token);
     }
 
     if (firstName) {
       await AsyncStorage.setItem("user_first_name", firstName);
     }
+
+    console.log("Registration successful, token saved:", !!token);
 
     return response.data;
   } catch (error) {
@@ -74,19 +82,30 @@ export const setUserPin = async (email, pin) => {
   return response.data;
 };
 
-
 export const loginUser = async (email, password) => {
-  console.log("Sending login request:", { email, password }); 
+  console.log("Sending login request:", { email, password });
 
   const res = await api.post("/login", {
     email,
     password,
   });
-  console.log("login res: ",res.data)
+  console.log("Login successful");
   const token = res.data.access_token;
-  await saveToken(token);
+  const firstName = res.data.first_name;
+
+  if (token) {
+    await saveToken(token);
+    // Also save to AsyncStorage for consistency
+    await AsyncStorage.setItem("accessToken", token);
+  }
+
+  if (firstName) {
+    await AsyncStorage.setItem("user_first_name", firstName);
+  }
+
   return res.data;
 };
+
 
 export const logoutUser = async () => {
   try {
@@ -98,22 +117,18 @@ export const logoutUser = async () => {
         {},
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`, // Fixed template literal
           },
         }
       );
     }
 
-    await SecureStore.deleteItemAsync("user_token");
-    await AsyncStorage.removeItem("user_first_name");
-
+    await clearAllUserData();
     return true;
   } catch (error) {
     console.error("Logout failed:", error.response?.data || error.message);
+    // Still clear local data even if server logout fails
+    await clearAllUserData();
     return false;
   }
 };
-
-
-
-
