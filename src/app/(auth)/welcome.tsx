@@ -28,13 +28,13 @@ export default function WelcomeScreen() {
       </View>
 
       <Text style={styles.title}>Welcome to DreamBox, {firstName}!</Text>
-      <Text style={styles.subtitle}>Let’s build your savings!</Text>
+      <Text style={styles.subtitle}>Please Login and let’s start building your savings!</Text>
 
       <View style={styles.buttonContainer}>
         <FormButton
-          title="Continue"
+          title="Continue to Login"
           onPress={() => {
-            router.replace("/(tabs)");
+            router.replace("/login");
           }}
         />
       </View>

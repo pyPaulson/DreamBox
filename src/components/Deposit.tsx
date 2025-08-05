@@ -10,29 +10,126 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
+import * as WebBrowser from "expo-web-browser";
 import { Ionicons } from "@expo/vector-icons";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
 import FormButton from "./FormButton";
+import PaystackWebView from "react-native-paystack-webview";
+import { initializeDeposit, verifyDeposit } from "@/services/payment";
 
 const NETWORKS = ["MTN", "Tel", "AT"];
 
 const DepositModal = ({
   visible,
   onClose,
+  goalId,
+  goalType,
 }: {
   visible: boolean;
   onClose: () => void;
+  goalId: string;
+  goalType: string;
 }) => {
   const [selectedNetwork, setSelectedNetwork] = useState("MTN");
   const [showDropdown, setShowDropdown] = useState(false);
   const [mobileNumber, setMobileNumber] = useState("");
   const [amount, setAmount] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleSelectNetwork = (network: string) => {
     setSelectedNetwork(network);
     setShowDropdown(false);
+  };
+
+  const handleDeposit = async () => {
+    if (!mobileNumber || !amount) {
+      Alert.alert("Missing Fields", "Please fill in all required fields.");
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+
+      const amountNumber = parseFloat(amount);
+      if (isNaN(amountNumber) || amountNumber <= 0) {
+        Alert.alert("Invalid Amount", "Please enter a valid amount.");
+        return;
+      }
+
+      // Clean goalId - remove any file extensions that might have been added
+      const cleanGoalId = goalId?.replace(/\.(tsx?|jsx?)$/, "") || null;
+
+      console.log("Initializing deposit with:", {
+        amount: amountNumber,
+        accountType: goalType, // Use goalType directly
+        goalId: cleanGoalId,
+      });
+
+      // Step 1: Initialize payment with Paystack
+      const { authorization_url, reference } = await initializeDeposit(
+        amountNumber,
+        goalType, // This should match your backend validation: "flexi", "emergency", "safelock"
+        cleanGoalId
+      );
+
+      console.log("Payment initialized successfully:", {
+        authorization_url,
+        reference,
+      });
+
+      // Step 2: Open Paystack payment page
+      const result = await WebBrowser.openBrowserAsync(authorization_url);
+
+      if (result.type === "cancel") {
+        Alert.alert("Payment Cancelled", "You cancelled the payment.");
+        return;
+      }
+
+      // Step 3: Verify payment after user returns
+      console.log("Verifying payment with reference:", reference);
+
+      const verification = await verifyDeposit(reference);
+      console.log("Payment verification result:", verification);
+
+      if (verification.message?.includes("successfully")) {
+        Alert.alert(
+          "Payment Successful",
+          `Your deposit of GHS ${amountNumber} has been added successfully.`,
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                // Reset form
+                setAmount("");
+                setMobileNumber("");
+                onClose();
+              },
+            },
+          ]
+        );
+      } else {
+        Alert.alert(
+          "Payment Status",
+          verification.message || "Payment verification completed."
+        );
+      }
+    } catch (error: any) {
+      console.error("Deposit error:", error);
+
+      let errorMessage = "An error occurred during payment.";
+      if (error?.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      Alert.alert("Error", errorMessage);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -112,6 +209,7 @@ const DepositModal = ({
                   keyboardType="numeric"
                   value={mobileNumber}
                   onChangeText={setMobileNumber}
+                  editable={!isProcessing}
                 />
               </View>
 
@@ -128,18 +226,22 @@ const DepositModal = ({
                   keyboardType="numeric"
                   value={amount}
                   onChangeText={setAmount}
+                  editable={!isProcessing}
                 />
               </View>
 
               {/* Pay Now Button */}
               <FormButton
-                title={"Pay Now"}
-                onPress={() => {
-                     console.log("You are paying now");
-                     
-                }}
+                title={isProcessing ? "Processing..." : "Pay Now"}
+                onPress={handleDeposit}
+                disabled={isProcessing}
               />
-              <Pressable onPress={onClose} style={styles.cancelBtn}>
+
+              <Pressable
+                onPress={onClose}
+                style={styles.cancelBtn}
+                disabled={isProcessing}
+              >
                 <Text style={styles.cancelText}>Cancel</Text>
               </Pressable>
             </ScrollView>

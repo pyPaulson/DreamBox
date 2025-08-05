@@ -177,10 +177,7 @@ const HomeScreen = () => {
           />
         </ScrollView>
       </View>
-      <Deposit
-        visible={isFundModalVisible}
-        onClose={() => setFundModalVisible(false)}
-      />
+    
       <WithdrawModal
         visible={showWithdraw}
         onClose={() => setShowWithdraw(false)}

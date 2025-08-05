@@ -15,11 +15,14 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Keyboard, TouchableWithoutFeedback } from "react-native";
 import { Modal } from "react-native";
 import { useState } from "react";
+import Deposit from "@/components/Deposit";
 
 const GoalDetail = () => {
   const router = useRouter();
-  const { title, amount, targetDate, emergencyFund, percentage } =
+  const { id, title, amount, targetDate, emergencyFund, percentage, goalType } =
     useLocalSearchParams();
+
+  const goalId = Array.isArray(id) ? id[0] : id || "";
 
   const [modalVisible, setModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -27,6 +30,7 @@ const GoalDetail = () => {
   const [editedAmount, setEditedAmount] = useState(amount as string);
   const [editedDate, setEditedDate] = useState(targetDate as string);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isFundModalVisible, setFundModalVisible] = useState(false);
 
   const progress = parseFloat((percentage as string) || "0");
 
@@ -216,8 +220,19 @@ const GoalDetail = () => {
             </View>
           )}
           <View style={styles.button}>
-            <FormButton title={"Top-up"} onPress={() => {}} />
+            <FormButton
+              title={"Top-up"}
+              onPress={() => {
+                setFundModalVisible(true);
+              }}
+            />
           </View>
+          <Deposit
+            visible={isFundModalVisible}
+            onClose={() => setFundModalVisible(false)}
+            goalId={goalId}
+            goalType={goalType as string}
+          />
         </View>
       </View>
     </>

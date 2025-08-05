@@ -82,6 +82,7 @@ const SafeLockModal = ({
                 placeholder="E.g Rent, Travel"
                 value={planName}
                 onChangeText={setPlanName}
+                autoCapitalize="words"
               />
 
               <FormInput
@@ -112,11 +113,12 @@ const SafeLockModal = ({
                 <DateTimePicker
                   value={date}
                   mode="date"
-                  display="default"
+                  display="inline"
                   onChange={(event, selectedDate) => {
                     setShowDatePicker(false);
                     if (selectedDate) setDate(selectedDate);
                   }}
+                  minimumDate={new Date()}
                 />
               )}
 

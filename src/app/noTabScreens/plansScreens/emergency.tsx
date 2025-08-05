@@ -1,19 +1,59 @@
+import React, { useEffect, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
-import React from "react";
+import { Feather, Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
 import TransactionItem from "@/components/TransactionItem";
-import { Feather, Ionicons } from "@expo/vector-icons";
 import TransactionButton from "@/components/TransactionBtn";
+import { getEmergencyFund } from "../../../services/goals";
 import { router } from "expo-router";
 
+type EmergencyFundType = {
+  balance: number;
+  // Add other properties if needed
+};
+
 const EmergencyScreen = () => {
+  const [emergencyFund, setEmergencyFund] = useState<EmergencyFundType | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchEmergencyData = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const data = await getEmergencyFund(token);
+      setEmergencyFund(data);
+    } catch (error) {
+      console.error("Error fetching emergency fund:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEmergencyData();
+  }, []);
+
+  if (loading) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color={AppColors.text_three} />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.topContainer}>
@@ -27,7 +67,9 @@ const EmergencyScreen = () => {
           <Text style={styles.amountLabel}>Emergency Plan</Text>
           <View style={styles.amountRow}>
             <Text style={styles.cedi}>₵</Text>
-            <Text style={styles.amount}>100</Text>
+            <Text style={styles.amount}>
+              {emergencyFund ? emergencyFund.balance.toFixed(2) : "0.00"}
+            </Text>
             <Ionicons
               style={styles.eyeIcon}
               name="eye-outline"
@@ -40,15 +82,14 @@ const EmergencyScreen = () => {
           </View>
         </View>
       </View>
+
       <View style={styles.bottomContainer}>
         <ScrollView showsVerticalScrollIndicator={false}>
           <Text style={styles.emergencyTitle}>Emergency Fund</Text>
           <Text style={styles.emergencyText}>
             An emergency fund is a savings account that is set aside to cover
             unexpected expenses or financial emergencies. It is typically used
-            for things like medical bills, car repairs, or job loss. The goal of
-            an emergency fund is to provide a financial safety net that can help
-            you avoid going into debt when unexpected expenses arise.{" "}
+            for things like medical bills, car repairs, or job loss...
           </Text>
 
           <View style={styles.recentRow}>
@@ -56,54 +97,16 @@ const EmergencyScreen = () => {
             <Text style={styles.seeAll}>See all</Text>
           </View>
 
-          <TransactionItem
-            title={"Deposit"}
-            subtitle={
-              "20 cedis was successfully deposited to your Emergency plan"
-            }
-            date={"May 20, 2023"}
-            height={90}
-          />
-          <TransactionItem
-            title={"Deposit"}
-            subtitle={
-              "20 cedis was successfully deposited to your Emergency plan"
-            }
-            date={"May 20, 2023"}
-            height={90}
-          />
-          <TransactionItem
-            title={"Deposit"}
-            subtitle={
-              "20 cedis was successfully deposited to your Emergency plan"
-            }
-            date={"May 20, 2023"}
-            height={90}
-          />
-          <TransactionItem
-            title={"Deposit"}
-            subtitle={
-              "200 cedis was successfully deposited to your Emergency plan"
-            }
-            date={"May 20, 2023"}
-            height={90}
-          />
-          <TransactionItem
-            title={"Deposit"}
-            subtitle={
-              "30 cedis was successfully deposited to your Emergency plan"
-            }
-            date={"May 20, 2023"}
-            height={90}
-          />
-          <TransactionItem
-            title={"Deposit"}
-            subtitle={
-              "10 cedis was successfully deposited to your Emergency plan"
-            }
-            date={"May 20, 2023"}
-            height={90}
-          />
+          {/* Placeholder transaction data — replace with actual transactions later */}
+          {[...Array(3)].map((_, i) => (
+            <TransactionItem
+              key={i}
+              title="Deposit"
+              subtitle={`₵20 deposited to Emergency Plan`}
+              date={"July 20, 2025"}
+              height={90}
+            />
+          ))}
         </ScrollView>
       </View>
     </View>

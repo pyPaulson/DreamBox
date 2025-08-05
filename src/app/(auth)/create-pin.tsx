@@ -11,7 +11,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
-import { setUserPin } from "@/services/auth";
+import { setUserPin } from "@/services/auth"; 
 
 interface PinDotProps {
   filled: boolean;
@@ -117,11 +117,13 @@ export default function CreatePinScreen() {
     try {
       setIsNavigating(true);
       const res = await setUserPin(email, pin);
-
       Alert.alert("Success", res.message, [
         {
           text: "OK",
-          onPress: () => router.replace("/(auth)/welcome"),
+          onPress: () => router.replace({
+            pathname: "/(auth)/verify-pin",
+            params: { pin, email }, // pass both email and pin to verify screen
+          }),
         },
       ]);
     } catch (err: any) {
@@ -133,7 +135,7 @@ export default function CreatePinScreen() {
         message = err.response.data.detail;
       }
       Alert.alert("Error", message);
-      setPinInput("");
+      setPinInput(""); // reset
       setIsNavigating(false);
     }
   };

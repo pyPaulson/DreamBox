@@ -63,13 +63,9 @@ const SaveLock = () => {
           return goal.current_amount < goal.target_amount && target >= today;
         });
 
-        console.log("active goal: ", active, active.length);
-
         const completed = data.filter(
           (goal: Goal) => goal.current_amount >= goal.target_amount
         );
-
-        console.log("completed goal: ", completed);
 
         setGoals({ active, completed });
       } catch (err) {
@@ -173,6 +169,7 @@ const SaveLock = () => {
                     id: item.id,
                     title: item.goal_name,
                     amount: item.target_amount.toString(),
+                    goalType: "safelock",
                     percentage: (
                       (item.current_amount / item.target_amount) *
                       100

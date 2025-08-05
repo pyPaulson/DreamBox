@@ -29,3 +29,12 @@ export const createMyGoal = async (data) => {
   const res = await api.post("/goals/create-myGoal", data);
   return res.data;
 };
+
+export const getEmergencyFund = async (token) => {
+  const res = await api.get("/goals/emergency", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
+};

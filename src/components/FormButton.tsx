@@ -10,6 +10,7 @@ interface FormButtonProps {
   title: string;
   onPress: () => void;
   loading?: boolean;
+  disabled?: boolean;
 }
 
 export default function FormButton({

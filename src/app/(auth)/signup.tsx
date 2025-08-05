@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     paddingTop: 70,
-    paddingBottom: 70,
+    paddingBottom: 30,
     backgroundColor: AppColors.background_one,
   },
   backButton: {
