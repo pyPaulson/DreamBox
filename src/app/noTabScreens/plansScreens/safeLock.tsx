@@ -164,11 +164,12 @@ const SaveLock = () => {
             <Pressable
               onPress={() =>
                 router.push({
-                  pathname: "./[id].tsx",
+                  pathname: "./[id]", // Remove .tsx extension
                   params: {
                     id: item.id,
                     title: item.goal_name,
-                    amount: item.target_amount.toString(),
+                    targetAmount: item.target_amount.toString(),
+                    currentAmount: item.current_amount.toString(), // Add current amount
                     goalType: "safelock",
                     percentage: (
                       (item.current_amount / item.target_amount) *

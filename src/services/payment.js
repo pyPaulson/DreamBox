@@ -1,6 +1,5 @@
-import api from "./api"; // your configured axios instance
+import api from "./api"; 
 
-// Step 1: Initialize deposit
 export const initializeDeposit = async (amount, accountType, goalId) => {
   try {
     const params = {
@@ -49,3 +48,4 @@ export const verifyDeposit = async (reference) => {
     throw error;
   }
 };
+

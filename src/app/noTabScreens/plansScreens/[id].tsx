@@ -19,20 +19,39 @@ import Deposit from "@/components/Deposit";
 
 const GoalDetail = () => {
   const router = useRouter();
-  const { id, title, amount, targetDate, emergencyFund, percentage, goalType } =
-    useLocalSearchParams();
+  const {
+    id,
+    title,
+    targetAmount,
+    currentAmount,
+    targetDate,
+    emergencyFund,
+    percentage,
+    goalType,
+  } = useLocalSearchParams();
 
   const goalId = Array.isArray(id) ? id[0] : id || "";
 
   const [modalVisible, setModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editedTitle, setEditedTitle] = useState(title as string);
-  const [editedAmount, setEditedAmount] = useState(amount as string);
+  const [editedAmount, setEditedAmount] = useState(targetAmount as string);
   const [editedDate, setEditedDate] = useState(targetDate as string);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isFundModalVisible, setFundModalVisible] = useState(false);
 
   const progress = parseFloat((percentage as string) || "0");
+  const target = parseFloat((targetAmount as string) || "0");
+  const current = parseFloat((currentAmount as string) || "0");
+
+  const handleDepositSuccess = () => {
+    // You can add logic here to refresh the goal data or update the UI
+    // For now, we'll just close the modal
+    setFundModalVisible(false);
+
+    // Optionally, you could navigate back to refresh the list
+    // router.back();
+  };
 
   return (
     <>
@@ -52,7 +71,7 @@ const GoalDetail = () => {
                   style={styles.modalOption}
                   onPress={() => {
                     setEditedTitle(title as string);
-                    setEditedAmount(amount as string);
+                    setEditedAmount(targetAmount as string);
                     setEditedDate(targetDate as string);
                     setModalVisible(false);
                     setEditModalVisible(true);
@@ -190,8 +209,9 @@ const GoalDetail = () => {
             <Text style={styles.screenTitle}>SafeLock Detail</Text>
             <Text style={styles.amountLabel}> {title} </Text>
             <View style={styles.amountRow}>
-              <Text style={styles.cedi}>GHS {amount}</Text>
+              <Text style={styles.cedi}>GHS {current.toFixed(2)}</Text>
             </View>
+            <Text style={styles.targetText}>of GHS {target.toFixed(2)}</Text>
           </View>
         </View>
         <View style={styles.bottomContainer}>
@@ -201,11 +221,17 @@ const GoalDetail = () => {
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Target Amount</Text>
-            <Text style={styles.value}>GHS {amount}</Text>
+            <Text style={styles.value}>GHS {target.toFixed(2)}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Saved Amount</Text>
-            <Text style={styles.value}>GHS {amount}</Text>
+            <Text style={styles.value}>GHS {current.toFixed(2)}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Remaining Amount</Text>
+            <Text style={styles.value}>
+              GHS {(target - current).toFixed(2)}
+            </Text>
           </View>
           {targetDate && (
             <View style={styles.row}>
@@ -229,7 +255,7 @@ const GoalDetail = () => {
           </View>
           <Deposit
             visible={isFundModalVisible}
-            onClose={() => setFundModalVisible(false)}
+            onClose={handleDepositSuccess}
             goalId={goalId}
             goalType={goalType as string}
           />
@@ -281,12 +307,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   cedi: {
-    position: "absolute",
-    top: 8,
-    right: -60,
     color: AppColors.text_three,
-    fontSize: 30,
+    fontSize: 32,
+    fontFamily: Fonts.bodyBold,
+    textAlign: "center",
+  },
+  targetText: {
+    color: AppColors.text_three,
+    fontSize: 16,
     fontFamily: Fonts.body,
+    marginTop: 8,
+    opacity: 0.8,
   },
   progressBarWrapper: {
     height: 10,
