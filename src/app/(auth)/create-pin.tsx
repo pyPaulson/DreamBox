@@ -11,7 +11,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
-import { setUserPin } from "@/services/auth"; 
+import { setUserPin } from "@/services/auth";
 
 interface PinDotProps {
   filled: boolean;
@@ -89,6 +89,18 @@ export default function CreatePinScreen() {
   const [pin, setPinInput] = useState("");
   const [isNavigating, setIsNavigating] = useState(false);
 
+  // Debug logging
+  useEffect(() => {
+    console.log("CreatePinScreen - Received params:", params);
+    console.log("CreatePinScreen - Email:", email);
+    console.log("CreatePinScreen - Email type:", typeof email);
+    console.log("CreatePinScreen - Email length:", email.length);
+
+    if (!email) {
+      Alert.alert("Debug", "No email found in params");
+    }
+  }, [params, email]);
+
   const keypadLayout = [
     ["1", "2", "3"],
     ["4", "5", "6"],
@@ -109,24 +121,44 @@ export default function CreatePinScreen() {
   };
 
   const handlePinComplete = async () => {
+    console.log("handlePinComplete - Starting with email:", email);
+    console.log("handlePinComplete - PIN:", pin);
+
     if (!email) {
       Alert.alert("Error", "Email is missing");
       return;
     }
 
+    if (!email.includes("@")) {
+      Alert.alert("Debug", `Invalid email format: ${email}`);
+      return;
+    }
+
     try {
       setIsNavigating(true);
+
+      // Log the exact data being sent
+      console.log("Sending to setUserPin:", { email, pin });
+
       const res = await setUserPin(email, pin);
+
+      console.log("setUserPin response:", res);
+
       Alert.alert("Success", res.message, [
         {
           text: "OK",
-          onPress: () => router.replace({
-            pathname: "/(auth)/verify-pin",
-            params: { pin, email }, // pass both email and pin to verify screen
-          }),
+          onPress: () =>
+            router.replace({
+              pathname: "/(auth)/verify-pin",
+              params: { pin, email },
+            }),
         },
       ]);
     } catch (err: any) {
+      console.error("setUserPin error:", err);
+      console.error("Error response:", err?.response);
+      console.error("Error response data:", err?.response?.data);
+
       let message = "Failed to set PIN. Try again.";
       if (
         err?.response?.data?.detail &&
@@ -134,8 +166,16 @@ export default function CreatePinScreen() {
       ) {
         message = err.response.data.detail;
       }
-      Alert.alert("Error", message);
-      setPinInput(""); // reset
+
+      // Show more detailed error for debugging
+      Alert.alert(
+        "Error",
+        `${message}\n\nDebug info:\nEmail: ${email}\nError: ${
+          err?.response?.data?.detail || err.message
+        }`
+      );
+
+      setPinInput("");
       setIsNavigating(false);
     }
   };
@@ -185,6 +225,8 @@ export default function CreatePinScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Create a PIN</Text>
         <Text style={styles.subtitle}>Create a 4 digit Transaction PIN</Text>
+        {/* Debug display */}
+        <Text style={styles.debugText}>Email: {email}</Text>
       </View>
 
       <View style={styles.pinDisplay}>
@@ -229,6 +271,12 @@ const styles = StyleSheet.create({
     color: AppColors.text_two,
     fontFamily: Fonts.body,
     textAlign: "center",
+  },
+  debugText: {
+    fontSize: 12,
+    color: "red",
+    textAlign: "center",
+    marginTop: 10,
   },
   pinDisplay: {
     flexDirection: "row",

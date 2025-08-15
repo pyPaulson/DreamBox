@@ -14,43 +14,89 @@ import FormInput from "@/components/FormInput";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Keyboard, TouchableWithoutFeedback } from "react-native";
 import { Modal } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Deposit from "@/components/Deposit";
 
 const GoalDetail = () => {
   const router = useRouter();
-  const {
-    id,
-    title,
-    targetAmount,
-    currentAmount,
-    targetDate,
-    emergencyFund,
-    percentage,
-    goalType,
-  } = useLocalSearchParams();
+  const params = useLocalSearchParams();
 
-  const goalId = Array.isArray(id) ? id[0] : id || "";
+  // Initialize state with params but allow for updates
+  const [goalData, setGoalData] = useState({
+    id: (Array.isArray(params.id) ? params.id[0] : params.id) || "",
+    title: (params.title as string) || "",
+    targetAmount: parseFloat(params.targetAmount as string) || 0,
+    currentAmount: parseFloat(params.currentAmount as string) || 0,
+    targetDate: (params.targetDate as string) || "",
+    emergencyFund: (params.emergencyFund as string) || "",
+    percentage: parseFloat(params.percentage as string) || 0,
+    goalType: (params.goalType as string) || "",
+  });
 
   const [modalVisible, setModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
-  const [editedTitle, setEditedTitle] = useState(title as string);
-  const [editedAmount, setEditedAmount] = useState(targetAmount as string);
-  const [editedDate, setEditedDate] = useState(targetDate as string);
+  const [editedTitle, setEditedTitle] = useState(goalData.title);
+  const [editedAmount, setEditedAmount] = useState(
+    goalData.targetAmount.toString()
+  );
+  const [editedDate, setEditedDate] = useState(goalData.targetDate);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isFundModalVisible, setFundModalVisible] = useState(false);
 
-  const progress = parseFloat((percentage as string) || "0");
-  const target = parseFloat((targetAmount as string) || "0");
-  const current = parseFloat((currentAmount as string) || "0");
+  // Calculate progress
+  const progress =
+    goalData.targetAmount > 0
+      ? Math.min((goalData.currentAmount / goalData.targetAmount) * 100, 100)
+      : 0;
 
-  const handleDepositSuccess = () => {
-    // You can add logic here to refresh the goal data or update the UI
-    // For now, we'll just close the modal
+  const handleDepositSuccess = (depositAmount: number) => {
+    // Update the local state with the new amount
+    setGoalData((prevData) => ({
+      ...prevData,
+      currentAmount: prevData.currentAmount + depositAmount,
+      percentage:
+        prevData.targetAmount > 0
+          ? Math.min(
+              ((prevData.currentAmount + depositAmount) /
+                prevData.targetAmount) *
+                100,
+              100
+            )
+          : 0,
+    }));
+
+    // Close the modal
     setFundModalVisible(false);
 
-    // Optionally, you could navigate back to refresh the list
-    // router.back();
+    // You could also add a success toast/notification here
+    console.log(`Successfully added GHS ${depositAmount} to ${goalData.title}`);
+  };
+
+  const handleSaveEdit = () => {
+    // Update the goal data with edited values
+    const newTargetAmount = parseFloat(editedAmount);
+    const newCurrentAmount = goalData.currentAmount;
+
+    setGoalData((prevData) => ({
+      ...prevData,
+      title: editedTitle,
+      targetAmount: newTargetAmount,
+      targetDate: editedDate,
+      percentage:
+        newTargetAmount > 0
+          ? Math.min((newCurrentAmount / newTargetAmount) * 100, 100)
+          : 0,
+    }));
+
+    setEditModalVisible(false);
+
+    // Here you would typically also make an API call to update the backend
+    console.log("Updated goal:", {
+      id: goalData.id,
+      title: editedTitle,
+      targetAmount: newTargetAmount,
+      targetDate: editedDate,
+    });
   };
 
   return (
@@ -70,9 +116,9 @@ const GoalDetail = () => {
                 <TouchableOpacity
                   style={styles.modalOption}
                   onPress={() => {
-                    setEditedTitle(title as string);
-                    setEditedAmount(targetAmount as string);
-                    setEditedDate(targetDate as string);
+                    setEditedTitle(goalData.title);
+                    setEditedAmount(goalData.targetAmount.toString());
+                    setEditedDate(goalData.targetDate);
                     setModalVisible(false);
                     setEditModalVisible(true);
                   }}
@@ -168,18 +214,7 @@ const GoalDetail = () => {
                   />
                 )}
 
-                <FormButton
-                  title="Save Changes"
-                  onPress={() => {
-                    console.log(
-                      "Updated values:",
-                      editedTitle,
-                      editedAmount,
-                      editedDate
-                    );
-                    setEditModalVisible(false);
-                  }}
-                />
+                <FormButton title="Save Changes" onPress={handleSaveEdit} />
 
                 <TouchableOpacity onPress={() => setEditModalVisible(false)}>
                   <Text style={styles.modalCancel}>Cancel</Text>
@@ -207,11 +242,15 @@ const GoalDetail = () => {
               onPress={() => setModalVisible(true)}
             />
             <Text style={styles.screenTitle}>SafeLock Detail</Text>
-            <Text style={styles.amountLabel}> {title} </Text>
+            <Text style={styles.amountLabel}>{goalData.title}</Text>
             <View style={styles.amountRow}>
-              <Text style={styles.cedi}>GHS {current.toFixed(2)}</Text>
+              <Text style={styles.cedi}>
+                GHS {goalData.currentAmount.toFixed(2)}
+              </Text>
             </View>
-            <Text style={styles.targetText}>of GHS {target.toFixed(2)}</Text>
+            <Text style={styles.targetText}>
+              of GHS {goalData.targetAmount.toFixed(2)}
+            </Text>
           </View>
         </View>
         <View style={styles.bottomContainer}>
@@ -221,28 +260,36 @@ const GoalDetail = () => {
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Target Amount</Text>
-            <Text style={styles.value}>GHS {target.toFixed(2)}</Text>
+            <Text style={styles.value}>
+              GHS {goalData.targetAmount.toFixed(2)}
+            </Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Saved Amount</Text>
-            <Text style={styles.value}>GHS {current.toFixed(2)}</Text>
+            <Text style={styles.value}>
+              GHS {goalData.currentAmount.toFixed(2)}
+            </Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Remaining Amount</Text>
             <Text style={styles.value}>
-              GHS {(target - current).toFixed(2)}
+              GHS{" "}
+              {Math.max(
+                goalData.targetAmount - goalData.currentAmount,
+                0
+              ).toFixed(2)}
             </Text>
           </View>
-          {targetDate && (
+          {goalData.targetDate && (
             <View style={styles.row}>
               <Text style={styles.label}>Target Date</Text>
-              <Text style={styles.value}>{targetDate}</Text>
+              <Text style={styles.value}>{goalData.targetDate}</Text>
             </View>
           )}
-          {emergencyFund && (
+          {goalData.emergencyFund && (
             <View style={styles.row}>
               <Text style={styles.label}>Emergency Fund</Text>
-              <Text style={styles.value}>{emergencyFund}%</Text>
+              <Text style={styles.value}>{goalData.emergencyFund}%</Text>
             </View>
           )}
           <View style={styles.button}>
@@ -255,9 +302,10 @@ const GoalDetail = () => {
           </View>
           <Deposit
             visible={isFundModalVisible}
-            onClose={handleDepositSuccess}
-            goalId={goalId}
-            goalType={goalType as string}
+            onClose={() => setFundModalVisible(false)}
+            goalId={goalData.id || null}
+            goalType={goalData.goalType}
+            onDepositSuccess={handleDepositSuccess}
           />
         </View>
       </View>

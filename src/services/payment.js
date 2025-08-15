@@ -1,21 +1,29 @@
-import api from "./api"; 
+import api from "./api";
 
-export const initializeDeposit = async (amount, accountType, goalId) => {
+export const initializeDeposit = async (amount, accountType, goalId = null) => {
   try {
+    // Prepare the query parameters (your backend expects query params, not JSON body)
     const params = {
       amount: parseFloat(amount),
-      account_type: accountType,
+      account_type: accountType.toLowerCase(),
     };
 
-    if (goalId && goalId.trim() !== "") {
+    // Only add goal_id if it exists and is not empty
+    if (
+      goalId &&
+      goalId.trim() !== "" &&
+      goalId !== "null" &&
+      goalId !== "undefined"
+    ) {
       params.goal_id = goalId.trim();
     }
 
-    console.log("Sending query params to backend:", params);
+    console.log("🔄 Sending query params to backend:", params);
 
+    // Send as query parameters (matching your original backend expectation)
     const response = await api.post("/payments/init-deposit", null, { params });
 
-    console.log("🔍 Full backend response:", response);
+    console.log("✅ Backend response:", response.data);
 
     if (!response.data || !response.data.authorization_url) {
       throw new Error(
@@ -25,27 +33,32 @@ export const initializeDeposit = async (amount, accountType, goalId) => {
 
     return response.data;
   } catch (error) {
-    console.log(
-      "🚨 Error initializing deposit:",
-      error.response?.data || error.message
-    );
+    console.error("❌ Error initializing deposit:", {
+      error: error.response?.data || error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+    });
     throw error;
   }
 };
 
-// Step 2: Verify deposit (no changes needed)
 export const verifyDeposit = async (reference) => {
   try {
+    console.log("🔄 Verifying deposit with reference:", reference);
+
     const response = await api.get(`/payments/verify-deposit`, {
       params: { reference },
     });
+
+    console.log("✅ Verification response:", response.data);
+
     return response.data;
   } catch (error) {
-    console.log(
-      "Error verifying deposit:",
-      error.response?.data || error.message
-    );
+    console.error("❌ Error verifying deposit:", {
+      error: error.response?.data || error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+    });
     throw error;
   }
 };
-

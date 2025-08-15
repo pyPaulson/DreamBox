@@ -17,7 +17,6 @@ import { Ionicons } from "@expo/vector-icons";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
 import FormButton from "./FormButton";
-import PaystackWebView from "react-native-paystack-webview";
 import { initializeDeposit, verifyDeposit } from "@/services/payment";
 
 const NETWORKS = ["MTN", "Tel", "AT"];
@@ -27,11 +26,13 @@ const DepositModal = ({
   onClose,
   goalId,
   goalType,
+  onDepositSuccess, // Add this prop to handle successful deposits
 }: {
   visible: boolean;
   onClose: () => void;
-  goalId: string;
+  goalId: string | null;
   goalType: string;
+  onDepositSuccess?: (amount: number) => void;
 }) => {
   const [selectedNetwork, setSelectedNetwork] = useState("MTN");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -42,6 +43,13 @@ const DepositModal = ({
   const handleSelectNetwork = (network: string) => {
     setSelectedNetwork(network);
     setShowDropdown(false);
+  };
+
+  const resetForm = () => {
+    setAmount("");
+    setMobileNumber("");
+    setSelectedNetwork("MTN");
+    setIsProcessing(false);
   };
 
   const handleDeposit = async () => {
@@ -64,14 +72,14 @@ const DepositModal = ({
 
       console.log("Initializing deposit with:", {
         amount: amountNumber,
-        accountType: goalType, // Use goalType directly
+        accountType: goalType,
         goalId: cleanGoalId,
       });
 
       // Step 1: Initialize payment with Paystack
       const { authorization_url, reference } = await initializeDeposit(
         amountNumber,
-        goalType, // This should match your backend validation: "flexi", "emergency", "safelock"
+        goalType,
         cleanGoalId
       );
 
@@ -83,45 +91,83 @@ const DepositModal = ({
       // Step 2: Open Paystack payment page
       const result = await WebBrowser.openBrowserAsync(authorization_url);
 
-      if (result.type === "cancel") {
-        Alert.alert("Payment Cancelled", "You cancelled the payment.");
-        return;
-      }
+      console.log("Browser result:", result);
 
-      // Step 3: Verify payment after user returns
-      console.log("Verifying payment with reference:", reference);
+      // Step 3: Always attempt to verify payment after browser closes
+      // This handles both successful payments and cancelled ones
+      try {
+        console.log("Verifying payment with reference:", reference);
 
-      const verification = await verifyDeposit(reference);
-      console.log("Payment verification result:", verification);
+        // Add a small delay to allow payment processing
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      if (verification.message?.includes("successfully")) {
+        const verification = await verifyDeposit(reference);
+        console.log("Payment verification result:", verification);
+
+        if (
+          verification.success &&
+          verification.message?.includes("successfully")
+        ) {
+          Alert.alert(
+            "Payment Successful! 🎉",
+            `Your deposit of GHS ${amountNumber} has been added successfully.`,
+            [
+              {
+                text: "OK",
+                onPress: () => {
+                  resetForm();
+
+                  // Call the success callback to update parent component
+                  if (onDepositSuccess) {
+                    onDepositSuccess(amountNumber);
+                  }
+
+                  onClose();
+                },
+              },
+            ]
+          );
+        } else {
+          // Payment not successful or still pending
+          Alert.alert(
+            "Payment Status",
+            verification.message ||
+              "Payment verification completed. Please check your account balance."
+          );
+        }
+      } catch (verifyError: any) {
+        console.error("Verification error:", verifyError);
+
+        // If verification fails, it might be because payment is still processing
         Alert.alert(
-          "Payment Successful",
-          `Your deposit of GHS ${amountNumber} has been added successfully.`,
+          "Payment Verification",
+          "Unable to verify payment status immediately. Please check your account balance in a few minutes.",
           [
             {
               text: "OK",
               onPress: () => {
-                // Reset form
-                setAmount("");
-                setMobileNumber("");
+                resetForm();
                 onClose();
               },
             },
           ]
         );
-      } else {
-        Alert.alert(
-          "Payment Status",
-          verification.message || "Payment verification completed."
-        );
       }
     } catch (error: any) {
       console.error("Deposit error:", error);
+      console.error("Full error object:", JSON.stringify(error, null, 2));
 
       let errorMessage = "An error occurred during payment.";
       if (error?.response?.data?.detail) {
-        errorMessage = error.response.data.detail;
+        // Handle FastAPI validation errors (which are arrays)
+        if (Array.isArray(error.response.data.detail)) {
+          const validationErrors = error.response.data.detail
+            .map((err: any) => `${err.loc?.join(".")} - ${err.msg}`)
+            .join("\n");
+          errorMessage = `Validation Error:\n${validationErrors}`;
+        } else {
+          errorMessage = error.response.data.detail;
+        }
       } else if (error?.message) {
         errorMessage = error.message;
       }
@@ -129,6 +175,13 @@ const DepositModal = ({
       Alert.alert("Error", errorMessage);
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleClose = () => {
+    if (!isProcessing) {
+      resetForm();
+      onClose();
     }
   };
 
@@ -149,6 +202,7 @@ const DepositModal = ({
               <Pressable
                 style={styles.dropdown}
                 onPress={() => setShowDropdown(!showDropdown)}
+                disabled={isProcessing}
               >
                 <Text style={styles.dropdownText}>
                   {selectedNetwork} Mobile Money
@@ -182,6 +236,7 @@ const DepositModal = ({
                       styles.networkBtn,
                       selectedNetwork === network && styles.networkBtnSelected,
                     ]}
+                    disabled={isProcessing}
                   >
                     <Text
                       style={[
@@ -238,11 +293,18 @@ const DepositModal = ({
               />
 
               <Pressable
-                onPress={onClose}
-                style={styles.cancelBtn}
+                onPress={handleClose}
+                style={[styles.cancelBtn, isProcessing && styles.disabledBtn]}
                 disabled={isProcessing}
               >
-                <Text style={styles.cancelText}>Cancel</Text>
+                <Text
+                  style={[
+                    styles.cancelText,
+                    isProcessing && styles.disabledText,
+                  ]}
+                >
+                  Cancel
+                </Text>
               </Pressable>
             </ScrollView>
           </View>
@@ -384,5 +446,11 @@ const styles = StyleSheet.create({
     color: AppColors.primary,
     fontWeight: "bold",
     fontSize: 16,
+  },
+  disabledBtn: {
+    opacity: 0.5,
+  },
+  disabledText: {
+    opacity: 0.5,
   },
 });

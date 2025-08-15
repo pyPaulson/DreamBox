@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
-const API_BASE_URL = "http://10.11.24.135:8000"; 
+const API_BASE_URL = "http://10.11.24.97:8001"; 
 
 export const PAYSTACK_PUBLIC_KEY = "pk_test_58d8976eef9d54efbd37eddb89e469be16543813";
 
