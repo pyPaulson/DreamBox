@@ -4,6 +4,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Platform,
+  Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import AppColors from "@/constants/AppColors";
@@ -16,13 +17,25 @@ import { Keyboard, TouchableWithoutFeedback } from "react-native";
 import { Modal } from "react-native";
 import { useState, useEffect } from "react";
 import Deposit from "@/components/Deposit";
+import { StatusBar } from "expo-status-bar";
 
-const GoalDetail = () => {
+interface GoalData {
+  id: string;
+  title: string;
+  targetAmount: number;
+  currentAmount: number;
+  targetDate: string;
+  emergencyFund: string;
+  percentage: number;
+  goalType: string;
+}
+
+const GoalDetail: React.FC = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
 
   // Initialize state with params but allow for updates
-  const [goalData, setGoalData] = useState({
+  const [goalData, setGoalData] = useState<GoalData>({
     id: (Array.isArray(params.id) ? params.id[0] : params.id) || "",
     title: (params.title as string) || "",
     targetAmount: parseFloat(params.targetAmount as string) || 0,
@@ -33,15 +46,15 @@ const GoalDetail = () => {
     goalType: (params.goalType as string) || "",
   });
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [editedTitle, setEditedTitle] = useState(goalData.title);
-  const [editedAmount, setEditedAmount] = useState(
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
+  const [editedTitle, setEditedTitle] = useState<string>(goalData.title);
+  const [editedAmount, setEditedAmount] = useState<string>(
     goalData.targetAmount.toString()
   );
-  const [editedDate, setEditedDate] = useState(goalData.targetDate);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [isFundModalVisible, setFundModalVisible] = useState(false);
+  const [editedDate, setEditedDate] = useState<string>(goalData.targetDate);
+  const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
+  const [isFundModalVisible, setFundModalVisible] = useState<boolean>(false);
 
   // Calculate progress
   const progress =
@@ -49,37 +62,109 @@ const GoalDetail = () => {
       ? Math.min((goalData.currentAmount / goalData.targetAmount) * 100, 100)
       : 0;
 
-  const handleDepositSuccess = (depositAmount: number) => {
-    // Update the local state with the new amount
-    setGoalData((prevData) => ({
-      ...prevData,
-      currentAmount: prevData.currentAmount + depositAmount,
-      percentage:
-        prevData.targetAmount > 0
-          ? Math.min(
-              ((prevData.currentAmount + depositAmount) /
-                prevData.targetAmount) *
-                100,
-              100
-            )
-          : 0,
-    }));
+  const remainingAmount = Math.max(
+    goalData.targetAmount - goalData.currentAmount,
+    0
+  );
 
-    // Close the modal
-    setFundModalVisible(false);
-
-    // You could also add a success toast/notification here
-    console.log(`Successfully added GHS ${depositAmount} to ${goalData.title}`);
+  const formatDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch {
+      return dateString;
+    }
   };
 
-  const handleSaveEdit = () => {
-    // Update the goal data with edited values
+  const getAccountTypeTitle = (): string => {
+    switch (goalData.goalType?.toLowerCase()) {
+      case "safelock":
+        return "SafeLock Detail";
+      case "mygoal":
+        return "MyGoal Detail";
+      default:
+        return "Goal Detail";
+    }
+  };
+
+  const handleDepositSuccess = (depositAmount: number): void => {
+    // Update the local state with the new amount
+    setGoalData((prevData) => {
+      const newCurrentAmount = prevData.currentAmount + depositAmount;
+      const newPercentage =
+        prevData.targetAmount > 0
+          ? Math.min((newCurrentAmount / prevData.targetAmount) * 100, 100)
+          : 0;
+
+      return {
+        ...prevData,
+        currentAmount: newCurrentAmount,
+        percentage: newPercentage,
+      };
+    });
+
+    setFundModalVisible(false);
+
+    Alert.alert(
+      "Deposit Successful! 🎉",
+      `GHS ${depositAmount.toFixed(2)} has been added to "${goalData.title}".`,
+      [{ text: "OK" }]
+    );
+  };
+
+  const validateEditInputs = (): { isValid: boolean; error?: string } => {
+    if (!editedTitle.trim()) {
+      return { isValid: false, error: "Goal title cannot be empty" };
+    }
+
+    const amount = parseFloat(editedAmount);
+    if (isNaN(amount) || amount <= 0) {
+      return { isValid: false, error: "Please enter a valid target amount" };
+    }
+
+    if (amount < goalData.currentAmount) {
+      return {
+        isValid: false,
+        error: `Target amount cannot be less than current saved amount (GHS ${goalData.currentAmount.toFixed(
+          2
+        )})`,
+      };
+    }
+
+    if (!editedDate) {
+      return { isValid: false, error: "Please select a target date" };
+    }
+
+    // Check if target date is in the future
+    const selectedDate = new Date(editedDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate <= today) {
+      return { isValid: false, error: "Target date must be in the future" };
+    }
+
+    return { isValid: true };
+  };
+
+  const handleSaveEdit = (): void => {
+    const validation = validateEditInputs();
+    if (!validation.isValid) {
+      Alert.alert("Validation Error", validation.error);
+      return;
+    }
+
     const newTargetAmount = parseFloat(editedAmount);
     const newCurrentAmount = goalData.currentAmount;
 
     setGoalData((prevData) => ({
       ...prevData,
-      title: editedTitle,
+      title: editedTitle.trim(),
       targetAmount: newTargetAmount,
       targetDate: editedDate,
       percentage:
@@ -90,17 +175,80 @@ const GoalDetail = () => {
 
     setEditModalVisible(false);
 
+    Alert.alert(
+      "Goal Updated! ✅",
+      "Your goal has been updated successfully.",
+      [{ text: "OK" }]
+    );
+
     // Here you would typically also make an API call to update the backend
     console.log("Updated goal:", {
       id: goalData.id,
-      title: editedTitle,
+      title: editedTitle.trim(),
       targetAmount: newTargetAmount,
       targetDate: editedDate,
     });
   };
 
+  const handleTerminateGoal = (): void => {
+    Alert.alert(
+      "Terminate Goal",
+      `Are you sure you want to terminate "${goalData.title}"? This action cannot be undone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Terminate",
+          style: "destructive",
+          onPress: () => {
+            // Handle goal termination logic here
+            console.log("Terminating goal:", goalData.id);
+            Alert.alert(
+              "Goal Terminated",
+              "Your goal has been terminated successfully.",
+              [
+                {
+                  text: "OK",
+                  onPress: () => router.back(),
+                },
+              ]
+            );
+          },
+        },
+      ]
+    );
+  };
+
+  const handleWithdraw = (): void => {
+    if (goalData.goalType?.toLowerCase() === "safelock") {
+      Alert.alert(
+        "SafeLock Restriction",
+        "SafeLock funds are locked until the target date. Early withdrawal may incur penalties.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Continue",
+            onPress: () => {
+              Alert.alert(
+                "Coming Soon",
+                "Withdrawal feature will be available soon. Stay tuned!",
+                [{ text: "OK" }]
+              );
+            },
+          },
+        ]
+      );
+    } else {
+      Alert.alert(
+        "Coming Soon",
+        "Withdrawal feature will be available soon. Stay tuned!",
+        [{ text: "OK" }]
+      );
+    }
+  };
+
   return (
     <>
+      {/* Options Modal */}
       <Modal
         visible={modalVisible}
         animationType="slide"
@@ -111,7 +259,7 @@ const GoalDetail = () => {
           <View style={styles.modalOverlay}>
             <TouchableWithoutFeedback>
               <View style={styles.modalContainer}>
-                <Text style={styles.modalHeader}>Options</Text>
+                <Text style={styles.modalHeader}>Goal Options</Text>
 
                 <TouchableOpacity
                   style={styles.modalOption}
@@ -124,14 +272,14 @@ const GoalDetail = () => {
                   }}
                 >
                   <Feather name="edit" size={20} color={AppColors.primary} />
-                  <Text style={styles.modalOptionText}>Edit</Text>
+                  <Text style={styles.modalOptionText}>Edit Goal</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={styles.modalOption}
                   onPress={() => {
                     setModalVisible(false);
-                    console.log("Withdraw pressed");
+                    handleWithdraw();
                   }}
                 >
                   <Feather
@@ -146,11 +294,11 @@ const GoalDetail = () => {
                   style={styles.modalOption}
                   onPress={() => {
                     setModalVisible(false);
-                    console.log("Terminate pressed");
+                    handleTerminateGoal();
                   }}
                 >
-                  <Feather name="alert-triangle" size={20} color="red" />
-                  <Text style={[styles.modalOptionText, { color: "red" }]}>
+                  <Feather name="alert-triangle" size={20} color="#e74c3c" />
+                  <Text style={[styles.modalOptionText, { color: "#e74c3c" }]}>
                     Terminate Goal
                   </Text>
                 </TouchableOpacity>
@@ -164,6 +312,7 @@ const GoalDetail = () => {
         </TouchableWithoutFeedback>
       </Modal>
 
+      {/* Edit Modal */}
       <Modal
         visible={editModalVisible}
         animationType="slide"
@@ -180,6 +329,7 @@ const GoalDetail = () => {
                   label="Goal Title"
                   value={editedTitle}
                   onChangeText={setEditedTitle}
+                  placeholder="Enter goal title"
                 />
 
                 <FormInput
@@ -187,28 +337,27 @@ const GoalDetail = () => {
                   value={editedAmount}
                   onChangeText={setEditedAmount}
                   keyboardType="numeric"
+                  placeholder="Enter target amount"
                 />
 
                 <FormInput
                   label="Target Date"
-                  value={editedDate}
+                  value={formatDate(editedDate)}
                   editable={false}
                   onPressIn={() => setShowDatePicker(true)}
+                  placeholder="Select target date"
                 />
 
                 {showDatePicker && (
                   <DateTimePicker
                     mode="date"
                     value={editedDate ? new Date(editedDate) : new Date()}
-                    minimumDate={new Date()}
+                    minimumDate={new Date(Date.now() + 24 * 60 * 60 * 1000)}
                     display={Platform.OS === "ios" ? "spinner" : "default"}
                     onChange={(event, selectedDate) => {
                       setShowDatePicker(false);
                       if (selectedDate) {
-                        const dateStr = selectedDate
-                          .toISOString()
-                          .split("T")[0];
-                        setEditedDate(dateStr);
+                        setEditedDate(selectedDate.toISOString().split("T")[0]);
                       }
                     }}
                   />
@@ -225,6 +374,7 @@ const GoalDetail = () => {
         </TouchableWithoutFeedback>
       </Modal>
 
+      {/* Main Screen */}
       <View style={styles.container}>
         <View style={styles.topContainer}>
           <TouchableOpacity
@@ -233,15 +383,19 @@ const GoalDetail = () => {
           >
             <Feather name="arrow-left" size={24} color="#fff" />
           </TouchableOpacity>
-          <View style={styles.amountSec}>
+          <TouchableOpacity
+            style={styles.optionsButton}
+            onPress={() => setModalVisible(true)}
+          >
             <Ionicons
               name="ellipsis-horizontal-outline"
-              size={20}
+              size={24}
               color="#fff"
-              style={styles.notificationIcon}
-              onPress={() => setModalVisible(true)}
             />
-            <Text style={styles.screenTitle}>SafeLock Detail</Text>
+          </TouchableOpacity>
+
+          <View style={styles.amountSec}>
+            <Text style={styles.screenTitle}>{getAccountTypeTitle()}</Text>
             <Text style={styles.amountLabel}>{goalData.title}</Text>
             <View style={styles.amountRow}>
               <Text style={styles.cedi}>
@@ -253,53 +407,76 @@ const GoalDetail = () => {
             </Text>
           </View>
         </View>
+
         <View style={styles.bottomContainer}>
-          <Text style={styles.emergencyTitle}>See your Progress</Text>
-          <View style={styles.progressBarWrapper}>
-            <View style={[styles.progressBar, { width: `${progress}%` }]} />
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Target Amount</Text>
-            <Text style={styles.value}>
-              GHS {goalData.targetAmount.toFixed(2)}
-            </Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Saved Amount</Text>
-            <Text style={styles.value}>
-              GHS {goalData.currentAmount.toFixed(2)}
-            </Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Remaining Amount</Text>
-            <Text style={styles.value}>
-              GHS{" "}
-              {Math.max(
-                goalData.targetAmount - goalData.currentAmount,
-                0
-              ).toFixed(2)}
-            </Text>
-          </View>
-          {goalData.targetDate && (
-            <View style={styles.row}>
-              <Text style={styles.label}>Target Date</Text>
-              <Text style={styles.value}>{goalData.targetDate}</Text>
+          <Text style={styles.emergencyTitle}>Progress Overview</Text>
+
+          <View style={styles.progressSection}>
+            <View style={styles.progressBarWrapper}>
+              <View style={[styles.progressBar, { width: `${progress}%` }]} />
             </View>
-          )}
-          {goalData.emergencyFund && (
+            <Text style={styles.progressText}>
+              {progress.toFixed(1)}% Complete
+            </Text>
+          </View>
+
+          <View style={styles.detailsContainer}>
             <View style={styles.row}>
-              <Text style={styles.label}>Emergency Fund</Text>
-              <Text style={styles.value}>{goalData.emergencyFund}%</Text>
+              <Text style={styles.label}>Target Amount</Text>
+              <Text style={styles.value}>
+                GHS {goalData.targetAmount.toFixed(2)}
+              </Text>
             </View>
-          )}
+
+            <View style={styles.row}>
+              <Text style={styles.label}>Saved Amount</Text>
+              <Text style={styles.value}>
+                GHS {goalData.currentAmount.toFixed(2)}
+              </Text>
+            </View>
+
+            <View style={styles.row}>
+              <Text style={styles.label}>Remaining Amount</Text>
+              <Text style={[styles.value, { color: AppColors.primary }]}>
+                GHS {remainingAmount.toFixed(2)}
+              </Text>
+            </View>
+
+            {goalData.targetDate && (
+              <View style={styles.row}>
+                <Text style={styles.label}>Target Date</Text>
+                <Text style={styles.value}>
+                  {formatDate(goalData.targetDate)}
+                </Text>
+              </View>
+            )}
+
+            {goalData.emergencyFund && goalData.emergencyFund !== "0" && (
+              <View style={styles.row}>
+                <Text style={styles.label}>Emergency Fund</Text>
+                <Text style={styles.value}>{goalData.emergencyFund}%</Text>
+              </View>
+            )}
+          </View>
+
           <View style={styles.button}>
             <FormButton
-              title={"Top-up"}
+              title={progress >= 100 ? "Goal Completed! 🎉" : "Add Funds"}
               onPress={() => {
-                setFundModalVisible(true);
+                if (progress >= 100) {
+                  Alert.alert(
+                    "Congratulations! 🎉",
+                    "You have successfully completed this goal!",
+                    [{ text: "OK" }]
+                  );
+                } else {
+                  setFundModalVisible(true);
+                }
               }}
+              disabled={progress >= 100}
             />
           </View>
+
           <Deposit
             visible={isFundModalVisible}
             onClose={() => setFundModalVisible(false)}
@@ -308,6 +485,8 @@ const GoalDetail = () => {
             onDepositSuccess={handleDepositSuccess}
           />
         </View>
+
+        <StatusBar style="light" />
       </View>
     </>
   );
@@ -330,12 +509,16 @@ const styles = StyleSheet.create({
     left: 27,
     zIndex: 10,
   },
-  notificationIcon: {
-    marginLeft: 340,
+  optionsButton: {
+    position: "absolute",
+    top: 74,
+    right: 27,
+    zIndex: 10,
   },
   amountSec: {
     marginTop: 15,
     alignItems: "center",
+    paddingHorizontal: 20,
   },
   screenTitle: {
     textAlign: "center",
@@ -343,16 +526,18 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontFamily: Fonts.body,
     marginBottom: 25,
-    marginTop: -15,
+    marginTop: 15,
   },
   amountLabel: {
     color: AppColors.text_three,
     fontSize: 22,
-    fontFamily: Fonts.body,
+    fontFamily: Fonts.bodyBold,
     marginBottom: 24,
+    textAlign: "center",
   },
   amountRow: {
     flexDirection: "row",
+    alignItems: "center",
   },
   cedi: {
     color: AppColors.text_three,
@@ -367,17 +552,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     opacity: 0.8,
   },
-  progressBarWrapper: {
-    height: 10,
-    backgroundColor: "#eee",
-    borderRadius: 10,
-    overflow: "hidden",
-    marginBottom: 20,
-  },
-  progressBar: {
-    height: "100%",
-    backgroundColor: AppColors.primary,
-  },
   bottomContainer: {
     flex: 3.5,
     backgroundColor: AppColors.background_one,
@@ -389,69 +563,97 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: Fonts.bodyBold,
     marginTop: 5,
-    marginBottom: 9,
+    marginBottom: 20,
+    color: AppColors.primary,
   },
-  emergencyText: {
+  progressSection: {
+    marginBottom: 25,
+  },
+  progressBarWrapper: {
+    height: 12,
+    backgroundColor: "#e8f4f8",
+    borderRadius: 10,
+    overflow: "hidden",
+    marginBottom: 10,
+  },
+  progressBar: {
+    height: "100%",
+    backgroundColor: AppColors.primary,
+    borderRadius: 10,
+  },
+  progressText: {
+    fontSize: 14,
+    fontFamily: Fonts.bodyBold,
+    color: AppColors.primary,
+    textAlign: "center",
+  },
+  detailsContainer: {
+    backgroundColor: "#f8f9fa",
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 25,
+  },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e9ecef",
+  },
+  label: {
     fontFamily: Fonts.body,
     fontSize: 15,
     color: AppColors.text_two,
-    marginTop: 20,
-    lineHeight: 20,
-  },
-  row: {
-    marginTop: 10,
-  },
-  label: {
-    fontFamily: Fonts.bodyBold,
-    fontSize: 16,
-    marginBottom: 5,
   },
   value: {
-    fontFamily: Fonts.body,
+    fontFamily: Fonts.bodyBold,
     fontSize: 15,
-    marginBottom: 15,
+    color: "#333",
   },
   button: {
-    marginTop: 30,
+    marginTop: 20,
   },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "flex-end",
   },
-
   modalContainer: {
     backgroundColor: AppColors.background_one,
-    paddingVertical: 40,
-    paddingHorizontal: 30,
+    paddingVertical: 30,
+    paddingHorizontal: 25,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    maxHeight: "80%",
   },
-
   modalHeader: {
     fontSize: 20,
     fontFamily: Fonts.bodyBold,
-    marginBottom: 35,
-    marginTop: -20,
+    marginBottom: 25,
+    textAlign: "center",
+    color: AppColors.primary,
   },
-
   modalOption: {
     flexDirection: "row",
-    marginBottom: 20,
+    alignItems: "center",
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    marginBottom: 10,
   },
-
   modalOptionText: {
-    marginLeft: 12,
+    marginLeft: 15,
     fontSize: 16,
     fontFamily: Fonts.body,
+    color: "#333",
   },
-
   modalCancel: {
-    marginTop: 10,
-    marginBottom: 20,
+    marginTop: 20,
     fontSize: 16,
     textAlign: "center",
     color: AppColors.primary,
     fontFamily: Fonts.bodyBold,
+    paddingVertical: 10,
   },
 });

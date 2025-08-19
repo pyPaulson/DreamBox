@@ -1,4 +1,12 @@
-import { View, Text, StyleSheet, TextInput, TextInputProps } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TextInputProps,
+  StyleProp,
+  TextStyle,
+} from "react-native";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
 
@@ -7,6 +15,7 @@ interface FormInputProps extends TextInputProps {
   icon?: React.ReactNode;
   hasError?: boolean;
   customLabel?: string;
+  style?: StyleProp<TextStyle>;
 }
 
 
@@ -20,7 +29,7 @@ export default function FormInput({ label, icon, hasError, customLabel, ...props
       )}
       <View style={[styles.inputWrapper, hasError && { borderColor: "red" }]}>
         <TextInput
-          style={[styles.input, hasError && { color: "black" }]}
+          style={[styles.input, hasError && { color: "black" }, props.style]}
           placeholderTextColor={AppColors.placeholder}
           {...props}
         />

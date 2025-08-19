@@ -1,90 +1,190 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Modal,
   View,
   Text,
+  TextInput,
+  TouchableOpacity,
   StyleSheet,
-  Pressable,
   Platform,
-  KeyboardAvoidingView,
+  Alert,
+  Switch,
   ScrollView,
+  KeyboardAvoidingView,
+  Pressable,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import FormInput from "@/components/FormInput";
-import ToggleSwitch from "./ToggleSwitch";
-import FormButton from "./FormButton";
 import AppColors from "@/constants/AppColors";
 import Fonts from "@/constants/Fonts";
+import { Ionicons } from "@expo/vector-icons";
+import FormInput from "@/components/FormInput";
+import FormButton from "./FormButton";
 
-type Props = {
+interface SafeLockModalProps {
   visible: boolean;
   onClose: () => void;
   onCreateGoal: (goal: {
     title: string;
     amount: number;
-    percentage: number;
-    emergencyFund?: number;
     targetDate: string;
+    emergencyFund?: number;
   }) => void;
   showEmergencyOptions?: boolean;
   showConfirmationCheckbox?: boolean;
-};
+}
 
-const SafeLockModal = ({
+const SafeLockModal: React.FC<SafeLockModalProps> = ({
   visible,
   onClose,
   onCreateGoal,
-  showEmergencyOptions,
-  showConfirmationCheckbox,
-}: Props) => {
-  const [planName, setPlanName] = useState("");
-  const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [emergencyToggle, setEmergencyToggle] = useState(false);
-  const [percentage, setPercentage] = useState("10%");
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [confirmed, setConfirmed] = useState(false);
+  showEmergencyOptions = false,
+  showConfirmationCheckbox = false,
+}) => {
+  const [title, setTitle] = useState<string>("");
+  const [amount, setAmount] = useState<string>("");
+  const [targetDate, setTargetDate] = useState<Date>(new Date());
+  const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
+  const [hasEmergencyFund, setHasEmergencyFund] = useState<boolean>(false);
+  const [emergencyPercentage, setEmergencyPercentage] = useState<string>("");
+  const [agreeToTerms, setAgreeToTerms] = useState<boolean>(false);
 
-  const resetForm = () => {
-    setPlanName("");
+  const resetForm = (): void => {
+    setTitle("");
     setAmount("");
-    setDate(new Date());
-    setEmergencyToggle(false);
-    setConfirmed(false);
-    setShowDropdown(false);
-    setPercentage("10%");
+    setTargetDate(new Date());
+    setHasEmergencyFund(false);
+    setEmergencyPercentage("");
+    setAgreeToTerms(false);
   };
 
-  useEffect(() => {
-    if (!visible) {
-      resetForm();
+  const formatDateDisplay = (date: Date): string => {
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const validateInputs = (): { isValid: boolean; error?: string } => {
+    if (!title.trim()) {
+      return { isValid: false, error: "Please enter a goal title" };
     }
-  }, [visible]);
+
+    if (!amount.trim()) {
+      return { isValid: false, error: "Please enter target amount" };
+    }
+
+    const amountNumber = parseFloat(amount);
+    if (isNaN(amountNumber) || amountNumber <= 0) {
+      return {
+        isValid: false,
+        error: "Please enter a valid amount greater than 0",
+      };
+    }
+
+    if (amountNumber < 10) {
+      return { isValid: false, error: "Minimum target amount is GHS 10.00" };
+    }
+
+    // Check if target date is in the future
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(targetDate);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate <= today) {
+      return { isValid: false, error: "Target date must be in the future" };
+    }
+
+    // Validate emergency fund percentage if enabled
+    if (showEmergencyOptions && hasEmergencyFund) {
+      if (!emergencyPercentage.trim()) {
+        return {
+          isValid: false,
+          error: "Please enter emergency fund percentage",
+        };
+      }
+
+      const percentage = parseFloat(emergencyPercentage);
+      if (isNaN(percentage) || percentage <= 0 || percentage > 30) {
+        return {
+          isValid: false,
+          error: "Emergency fund percentage must be between 1-30%",
+        };
+      }
+    }
+
+    // Validate agreement checkbox if required
+    if (showConfirmationCheckbox && !agreeToTerms) {
+      return { isValid: false, error: "Please agree to the terms to continue" };
+    }
+
+    return { isValid: true };
+  };
+
+  const handleDateChange = (event: any, selectedDate?: Date): void => {
+    setShowDatePicker(Platform.OS === "ios");
+
+    if (selectedDate) {
+      setTargetDate(selectedDate);
+    }
+  };
+
+  const handleCreateGoal = (): void => {
+    const validation = validateInputs();
+    if (!validation.isValid) {
+      Alert.alert("Validation Error", validation.error);
+      return;
+    }
+
+    try {
+      const goalData = {
+        title: title.trim(),
+        amount: parseFloat(amount),
+        targetDate: targetDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
+        ...(showEmergencyOptions &&
+          hasEmergencyFund && {
+            emergencyFund: parseFloat(emergencyPercentage),
+          }),
+      };
+
+      console.log("Creating goal with data:", goalData);
+      onCreateGoal(goalData);
+      resetForm();
+    } catch (error) {
+      console.error("Error creating goal:", error);
+      Alert.alert("Error", "Failed to create goal. Please try again.");
+    }
+  };
+
+  const handleClose = (): void => {
+    resetForm();
+    onClose();
+  };
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.overlay}>
+      <View style={styles.modalOverlay}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardView}
         >
           <View style={styles.modalContainer}>
-            <ScrollView
-              contentContainerStyle={styles.scrollContent}
-              showsVerticalScrollIndicator={false}
-            >
-              <Text style={styles.title}>Create a Plan</Text>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={styles.title}>
+                {showEmergencyOptions ? "Create SafeLock Goal" : "Create Goal"}
+              </Text>
 
+              {/* Goal Title */}
               <FormInput
                 label="Give your plan a name"
                 placeholder="E.g Rent, Travel"
-                value={planName}
-                onChangeText={setPlanName}
+                value={title}
+                onChangeText={setTitle}
                 autoCapitalize="words"
               />
 
+              {/* Target Amount */}
               <FormInput
                 label="Enter your target amount"
                 placeholder="Enter amount"
@@ -93,11 +193,12 @@ const SafeLockModal = ({
                 onChangeText={setAmount}
               />
 
+              {/* Target Date */}
               <Pressable onPress={() => setShowDatePicker(true)}>
                 <FormInput
                   label="Target Date"
                   placeholder="Select a date"
-                  value={date.toDateString()}
+                  value={targetDate.toDateString()}
                   editable={false}
                   icon={
                     <Ionicons
@@ -111,132 +212,89 @@ const SafeLockModal = ({
 
               {showDatePicker && (
                 <DateTimePicker
-                  value={date}
+                  value={targetDate}
                   mode="date"
-                  display="inline"
-                  onChange={(event, selectedDate) => {
-                    setShowDatePicker(false);
-                    if (selectedDate) setDate(selectedDate);
-                  }}
-                  minimumDate={new Date()}
+                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  minimumDate={new Date(Date.now() + 24 * 60 * 60 * 1000)} // Tomorrow
+                  maximumDate={
+                    new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000)
+                  } // 10 years from now
+                  onChange={handleDateChange}
                 />
               )}
 
+              {/* Emergency Fund Options */}
               {showEmergencyOptions && (
-                <>
-                  <View style={styles.toggleRow}>
-                    <Text style={styles.toggleLabel}>
-                      Want to save a little for emergencies?
+                <View style={styles.emergencySection}>
+                  <View style={styles.switchContainer}>
+                    <Text style={styles.switchLabel}>
+                      Enable Emergency Fund
                     </Text>
-                    <ToggleSwitch
-                      value={emergencyToggle}
-                      onValueChange={setEmergencyToggle}
+                    <Switch
+                      value={hasEmergencyFund}
+                      onValueChange={setHasEmergencyFund}
+                      trackColor={{ false: "#767577", true: AppColors.primary }}
+                      thumbColor={hasEmergencyFund ? "#fff" : "#f4f3f4"}
                     />
                   </View>
 
-                  {emergencyToggle && (
-                    <View style={styles.dropdownContainer}>
-                      <Text style={styles.dropdownLabel}>
-                        What percentage would you like to save?
+                  {hasEmergencyFund && (
+                    <View style={styles.emergencyPercentageContainer}>
+                      <Text style={styles.label}>
+                        Emergency Fund Percentage (1-30%)
                       </Text>
-                      <Pressable
-                        style={styles.dropdown}
-                        onPress={() => setShowDropdown(!showDropdown)}
-                      >
-                        <Text style={styles.dropdownText}>{percentage}</Text>
-                        <Ionicons
-                          name={showDropdown ? "chevron-up" : "chevron-down"}
-                          size={20}
-                          color={AppColors.grey}
-                        />
-                      </Pressable>
-                      {showDropdown && (
-                        <View style={styles.dropdownOptions}>
-                          {["10%", "20%", "30%"].map((option) => (
-                            <Pressable
-                              key={option}
-                              onPress={() => {
-                                setPercentage(option);
-                                setShowDropdown(false);
-                              }}
-                              style={styles.dropdownItem}
-                            >
-                              <Text style={styles.dropdownText}>{option}</Text>
-                            </Pressable>
-                          ))}
-                        </View>
-                      )}
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Enter percentage (e.g., 10)"
+                        placeholderTextColor="#888"
+                        keyboardType="numeric"
+                        value={emergencyPercentage}
+                        onChangeText={setEmergencyPercentage}
+                        maxLength={2}
+                      />
+                      <Text style={styles.helperText}>
+                        This percentage of each deposit will go to your
+                        emergency fund
+                      </Text>
                     </View>
                   )}
-                </>
+                </View>
               )}
 
-              <View style={styles.checkboxRow}>
-                {showConfirmationCheckbox && (
-                  <View style={styles.checkboxRow}>
-                    <Pressable
-                      onPress={() => setConfirmed(!confirmed)}
-                      style={({ pressed }) => [
-                        {
-                          flexDirection: "row",
-                          alignItems: "center",
-                          backgroundColor: confirmed
-                            ? AppColors.background_one
-                            : "transparent",
-                          padding: 5,
-                          borderRadius: 8,
-                        },
-                        pressed && { opacity: 0.7 },
+              {/* Agreement Checkbox */}
+              {showConfirmationCheckbox && (
+                <View style={styles.agreementContainer}>
+                  <TouchableOpacity
+                    style={styles.checkboxContainer}
+                    onPress={() => setAgreeToTerms(!agreeToTerms)}
+                  >
+                    <View
+                      style={[
+                        styles.checkbox,
+                        agreeToTerms && styles.checkboxChecked,
                       ]}
                     >
-                      <Ionicons
-                        name={confirmed ? "checkbox" : "square-outline"}
-                        size={24}
-                        color={AppColors.primary}
-                      />
-                      <Text style={styles.checkboxText}>
-                        I understand I cannot withdraw this money until it
-                        unlocks
-                      </Text>
-                    </Pressable>
-                  </View>
-                )}
+                      {agreeToTerms && <Text style={styles.checkmark}>✓</Text>}
+                    </View>
+                    <Text style={styles.agreementText}>
+                      I agree to lock my funds until the target date and
+                      understand the terms
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* Buttons */}
+              <View style={styles.buttonContainer}>
+                <FormButton title="Create Goal" onPress={handleCreateGoal} />
+
+                <TouchableOpacity
+                  onPress={handleClose}
+                  style={styles.cancelButton}
+                >
+                  <Text style={styles.cancelText}>Cancel</Text>
+                </TouchableOpacity>
               </View>
-
-              <FormButton
-                title="Create Plan"
-                onPress={() => {
-                  if (
-                    !planName ||
-                    !amount ||
-                    (showConfirmationCheckbox && !confirmed)
-                  )
-                    return;
-
-                  const newGoal: any = {
-                    title: planName,
-                    amount: parseFloat(amount),
-                    targetDate: date.toDateString(),
-                  };
-
-                  if (emergencyToggle) {
-                    newGoal.percentage = parseInt(percentage);
-                    newGoal.emergencyFund = parseInt(percentage);
-                  }
-
-                  onCreateGoal(newGoal);
-                }}
-              />
-
-              <Pressable
-                onPress={() => {
-                  resetForm();
-                  onClose();
-                }}
-                style={styles.cancelBtn}
-              >
-                <Text style={styles.cancelText}>Cancel</Text>
-              </Pressable>
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
@@ -248,9 +306,9 @@ const SafeLockModal = ({
 export default SafeLockModal;
 
 const styles = StyleSheet.create({
-  overlay: {
+  modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "flex-end",
   },
   keyboardView: {
@@ -264,9 +322,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     padding: 24,
   },
-  scrollContent: {
-    paddingBottom: 50,
-  },
   title: {
     fontSize: 20,
     fontFamily: Fonts.title,
@@ -274,76 +329,99 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: AppColors.primary,
   },
-  toggleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  toggleLabel: {
+  label: {
+    fontFamily: Fonts.body,
     fontSize: 15,
-    fontFamily: Fonts.body,
-    color: AppColors.text_two,
-    flex: 1,
+    color: AppColors.primary,
+    marginTop: 15,
+    marginBottom: 8,
+    fontWeight: "600",
   },
-  dropdownContainer: {
-    marginBottom: 16,
-  },
-  dropdownLabel: {
-    marginBottom: 7,
-    marginLeft: 3,
-    color: AppColors.text_two,
+  input: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 15,
     fontSize: 16,
     fontFamily: Fonts.body,
+    backgroundColor: "#f9f9f9",
   },
-  dropdown: {
-    borderWidth: 1,
-    borderColor: AppColors.grey_two,
-    borderRadius: 7,
-    paddingHorizontal: 12,
-    paddingVertical: 15,
-    backgroundColor: AppColors.background_one,
+  emergencySection: {
+    marginTop: 20,
+    padding: 15,
+    backgroundColor: "#f0f8ff",
+    borderRadius: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: AppColors.primary,
+  },
+  switchContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 10,
   },
-  dropdownText: {
+  switchLabel: {
     fontSize: 16,
     fontFamily: Fonts.body,
-    color: AppColors.text_two,
+    color: AppColors.primary,
+    fontWeight: "600",
   },
-  dropdownOptions: {
-    backgroundColor: AppColors.background_one,
-    borderWidth: 0.3,
-    borderColor: AppColors.grey_two,
-    borderRadius: 7,
-    marginTop: 5,
-    overflow: "hidden",
+  emergencyPercentageContainer: {
+    marginTop: 15,
   },
-  dropdownItem: {
-    padding: 15,
-    borderBottomWidth: 0.25,
-    borderBottomColor: AppColors.grey_two,
-  },
-  checkboxRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 10,
-  },
-  checkboxText: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 13,
+  helperText: {
+    fontSize: 12,
     fontFamily: Fonts.body,
-    color: AppColors.text_two,
+    color: "#666",
+    marginTop: 5,
+    fontStyle: "italic",
   },
-  cancelBtn: {
-    alignItems: "center",
+  agreementContainer: {
     marginTop: 20,
+  },
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 10,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: AppColors.primary,
+    borderRadius: 4,
+    marginRight: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 2,
+  },
+  checkboxChecked: {
+    backgroundColor: AppColors.primary,
+  },
+  checkmark: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  agreementText: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: Fonts.body,
+    color: "#333",
+    lineHeight: 20,
+  },
+  buttonContainer: {
+    marginTop: 30,
+  },
+  cancelButton: {
+    alignItems: "center",
+    marginTop: 15,
+    marginBottom: 50,
   },
   cancelText: {
     color: AppColors.primary,
     fontWeight: "bold",
     fontSize: 16,
+    fontFamily: Fonts.body,
   },
 });

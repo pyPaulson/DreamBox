@@ -52,6 +52,8 @@ const SavingScreen = () => {
           router.push("/noTabScreens/plansScreens/emergency");
         }}
       />
+
+      <StatusBar style="dark" />
     </SafeAreaView>
   );
 };

@@ -21,6 +21,7 @@ import { getCurrentUser } from "@/services/user";
 import { logoutUser, getToken } from "@/services/auth";
 import * as ImagePicker from "expo-image-picker";
 import api from "@/services/api";
+import { StatusBar } from "expo-status-bar";
 
 type User = {
   first_name: string;
@@ -424,6 +425,9 @@ const ProfileScreen = () => {
           </View>
         </View>
       </Modal>
+      
+      <StatusBar style="light" />
+
     </View>
   );
 };

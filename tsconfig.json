@@ -12,5 +12,5 @@
     "src/**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-  ]
+, "src/services/payment.ts"  ]
 }

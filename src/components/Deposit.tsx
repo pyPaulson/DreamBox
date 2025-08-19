@@ -21,40 +21,190 @@ import { initializeDeposit, verifyDeposit } from "@/services/payment";
 
 const NETWORKS = ["MTN", "Tel", "AT"];
 
-const DepositModal = ({
-  visible,
-  onClose,
-  goalId,
-  goalType,
-  onDepositSuccess, // Add this prop to handle successful deposits
-}: {
+interface DepositModalProps {
   visible: boolean;
   onClose: () => void;
   goalId: string | null;
   goalType: string;
   onDepositSuccess?: (amount: number) => void;
-}) => {
-  const [selectedNetwork, setSelectedNetwork] = useState("MTN");
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [mobileNumber, setMobileNumber] = useState("");
-  const [amount, setAmount] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
+}
 
-  const handleSelectNetwork = (network: string) => {
+interface PaymentResult {
+  type: "cancel" | "dismiss" | "locked";
+  url?: string;
+}
+
+const DepositModal: React.FC<DepositModalProps> = ({
+  visible,
+  onClose,
+  goalId,
+  goalType,
+  onDepositSuccess,
+}) => {
+  const [selectedNetwork, setSelectedNetwork] = useState<string>("MTN");
+  const [showDropdown, setShowDropdown] = useState<boolean>(false);
+  const [mobileNumber, setMobileNumber] = useState<string>("");
+  const [amount, setAmount] = useState<string>("");
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+
+  const handleSelectNetwork = (network: string): void => {
     setSelectedNetwork(network);
     setShowDropdown(false);
   };
 
-  const resetForm = () => {
+  const resetForm = (): void => {
     setAmount("");
     setMobileNumber("");
     setSelectedNetwork("MTN");
     setIsProcessing(false);
   };
 
-  const handleDeposit = async () => {
-    if (!mobileNumber || !amount) {
-      Alert.alert("Missing Fields", "Please fill in all required fields.");
+  const getAccountTypeDisplay = (): string => {
+    switch (goalType?.toLowerCase()) {
+      case "safelock":
+        return "SafeLock";
+      case "mygoal":
+        return "MyGoal";
+      case "emergency":
+        return "Emergency Fund";
+      case "flexi":
+        return "Flexi Savings";
+      default:
+        return "Account";
+    }
+  };
+
+  const validateInputs = (): { isValid: boolean; error?: string } => {
+    if (!mobileNumber.trim()) {
+      return { isValid: false, error: "Please enter your mobile number" };
+    }
+
+    if (mobileNumber.length !== 9) {
+      return { isValid: false, error: "Mobile number must be 9 digits" };
+    }
+
+    if (!amount.trim()) {
+      return { isValid: false, error: "Please enter an amount" };
+    }
+
+    const amountNumber = parseFloat(amount);
+    if (isNaN(amountNumber) || amountNumber <= 0) {
+      return { isValid: false, error: "Please enter a valid amount" };
+    }
+
+    if (amountNumber < 1) {
+      return { isValid: false, error: "Minimum deposit amount is GHS 1.00" };
+    }
+
+    return { isValid: true };
+  };
+
+  const handlePaymentResult = async (
+    result: PaymentResult,
+    reference: string,
+    amountNumber: number
+  ): Promise<void> => {
+    console.log("Payment browser result:", result);
+
+    // Always try to verify the payment regardless of browser result
+    // This handles cases where user completes payment but browser shows "cancel"
+    try {
+      console.log("Attempting to verify payment...");
+
+      // Add a small delay to allow payment processing
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const verification = await verifyDeposit(reference);
+      console.log("Payment verification result:", verification);
+
+      if (verification.success) {
+        Alert.alert(
+          "Payment Successful! 🎉",
+          `Your deposit of GHS ${amountNumber.toFixed(
+            2
+          )} has been added to your ${getAccountTypeDisplay()} successfully.`,
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                resetForm();
+                onDepositSuccess?.(amountNumber);
+                onClose();
+              },
+            },
+          ]
+        );
+      } else {
+        // Payment exists but not successful yet
+        Alert.alert(
+          "Payment Processing",
+          verification.message ||
+            "Your payment is being processed. Please check your account balance in a few minutes.",
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                setIsProcessing(false);
+              },
+            },
+          ]
+        );
+      }
+    } catch (verifyError: any) {
+      console.error("Verification error:", verifyError);
+
+      if (verifyError?.response?.status === 404) {
+        // Transaction not found - likely cancelled
+        Alert.alert(
+          "Payment Cancelled",
+          "No payment was processed. You can try again.",
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                setIsProcessing(false);
+              },
+            },
+          ]
+        );
+      } else if (verifyError?.message?.includes("not successful yet")) {
+        // Payment pending
+        Alert.alert(
+          "Payment Processing",
+          "Your payment is being processed. Please check your account balance in a few minutes.",
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                resetForm();
+                onClose();
+              },
+            },
+          ]
+        );
+      } else {
+        // Other verification errors
+        Alert.alert(
+          "Payment Verification",
+          "Unable to verify payment status immediately. Please check your account balance in a few minutes.",
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                resetForm();
+                onClose();
+              },
+            },
+          ]
+        );
+      }
+    }
+  };
+
+  const handleDeposit = async (): Promise<void> => {
+    const validation = validateInputs();
+    if (!validation.isValid) {
+      Alert.alert("Validation Error", validation.error);
       return;
     }
 
@@ -62,12 +212,6 @@ const DepositModal = ({
       setIsProcessing(true);
 
       const amountNumber = parseFloat(amount);
-      if (isNaN(amountNumber) || amountNumber <= 0) {
-        Alert.alert("Invalid Amount", "Please enter a valid amount.");
-        return;
-      }
-
-      // Clean goalId - remove any file extensions that might have been added
       const cleanGoalId = goalId?.replace(/\.(tsx?|jsx?)$/, "") || null;
 
       console.log("Initializing deposit with:", {
@@ -89,77 +233,25 @@ const DepositModal = ({
       });
 
       // Step 2: Open Paystack payment page
-      const result = await WebBrowser.openBrowserAsync(authorization_url);
+      const result = await WebBrowser.openBrowserAsync(authorization_url, {
+        presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
+        showTitle: true,
+        controlsColor: AppColors.primary,
+        showInRecents: false,
+      });
 
-      console.log("Browser result:", result);
-
-      // Step 3: Always attempt to verify payment after browser closes
-      // This handles both successful payments and cancelled ones
-      try {
-        console.log("Verifying payment with reference:", reference);
-
-        // Add a small delay to allow payment processing
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
-        const verification = await verifyDeposit(reference);
-        console.log("Payment verification result:", verification);
-
-        if (
-          verification.success &&
-          verification.message?.includes("successfully")
-        ) {
-          Alert.alert(
-            "Payment Successful! 🎉",
-            `Your deposit of GHS ${amountNumber} has been added successfully.`,
-            [
-              {
-                text: "OK",
-                onPress: () => {
-                  resetForm();
-
-                  // Call the success callback to update parent component
-                  if (onDepositSuccess) {
-                    onDepositSuccess(amountNumber);
-                  }
-
-                  onClose();
-                },
-              },
-            ]
-          );
-        } else {
-          // Payment not successful or still pending
-          Alert.alert(
-            "Payment Status",
-            verification.message ||
-              "Payment verification completed. Please check your account balance."
-          );
-        }
-      } catch (verifyError: any) {
-        console.error("Verification error:", verifyError);
-
-        // If verification fails, it might be because payment is still processing
-        Alert.alert(
-          "Payment Verification",
-          "Unable to verify payment status immediately. Please check your account balance in a few minutes.",
-          [
-            {
-              text: "OK",
-              onPress: () => {
-                resetForm();
-                onClose();
-              },
-            },
-          ]
-        );
-      }
+      // Step 3: Handle payment result
+      await handlePaymentResult(
+        result as PaymentResult,
+        reference,
+        amountNumber
+      );
     } catch (error: any) {
       console.error("Deposit error:", error);
-      console.error("Full error object:", JSON.stringify(error, null, 2));
 
-      let errorMessage = "An error occurred during payment.";
+      let errorMessage = "An error occurred during payment initialization.";
+
       if (error?.response?.data?.detail) {
-        // Handle FastAPI validation errors (which are arrays)
         if (Array.isArray(error.response.data.detail)) {
           const validationErrors = error.response.data.detail
             .map((err: any) => `${err.loc?.join(".")} - ${err.msg}`)
@@ -173,12 +265,11 @@ const DepositModal = ({
       }
 
       Alert.alert("Error", errorMessage);
-    } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleClose = () => {
+  const handleClose = (): void => {
     if (!isProcessing) {
       resetForm();
       onClose();
@@ -194,7 +285,8 @@ const DepositModal = ({
         >
           <View style={styles.modalContainer}>
             <ScrollView contentContainerStyle={styles.scrollContent}>
-              <Text style={styles.title}>Pay With Mobile Money</Text>
+              <Text style={styles.title}>Fund {getAccountTypeDisplay()}</Text>
+              <Text style={styles.subtitle}>Pay With Mobile Money</Text>
 
               <Text style={styles.label}>Select Network Provider</Text>
 
@@ -265,6 +357,7 @@ const DepositModal = ({
                   value={mobileNumber}
                   onChangeText={setMobileNumber}
                   editable={!isProcessing}
+                  maxLength={9}
                 />
               </View>
 
@@ -276,7 +369,7 @@ const DepositModal = ({
                 </View>
                 <TextInput
                   style={styles.input}
-                  placeholder="Enter amount"
+                  placeholder="Enter amount (Min: 1.00)"
                   placeholderTextColor="#888"
                   keyboardType="numeric"
                   value={amount}
@@ -284,6 +377,17 @@ const DepositModal = ({
                   editable={!isProcessing}
                 />
               </View>
+
+              {/* Amount Display */}
+              {amount &&
+                !isNaN(parseFloat(amount)) &&
+                parseFloat(amount) > 0 && (
+                  <View style={styles.amountDisplay}>
+                    <Text style={styles.amountDisplayText}>
+                      Amount to deposit: GHS {parseFloat(amount).toFixed(2)}
+                    </Text>
+                  </View>
+                )}
 
               {/* Pay Now Button */}
               <FormButton
@@ -327,7 +431,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalContainer: {
-    height: "75%",
+    height: "80%",
     backgroundColor: "#fff",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -340,8 +444,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: Fonts.title,
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 8,
     color: AppColors.primary,
+  },
+  subtitle: {
+    fontSize: 16,
+    fontFamily: Fonts.body,
+    textAlign: "center",
+    marginBottom: 20,
+    color: AppColors.text_two,
   },
   label: {
     fontFamily: Fonts.body,
@@ -437,6 +548,19 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.body,
     fontSize: 15,
     height: "100%",
+  },
+  amountDisplay: {
+    backgroundColor: "#f0f8ff",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 15,
+    borderLeftWidth: 4,
+    borderLeftColor: AppColors.primary,
+  },
+  amountDisplayText: {
+    fontFamily: Fonts.bodyBold,
+    color: AppColors.primary,
+    fontSize: 16,
   },
   cancelBtn: {
     alignItems: "center",

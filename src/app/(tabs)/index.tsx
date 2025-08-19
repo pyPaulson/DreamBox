@@ -13,6 +13,7 @@ import { router } from "expo-router";
 import WithdrawModal from "@/components/Withdrawal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect } from "react";
+import { StatusBar } from "expo-status-bar";
 
 
 const HomeScreen = () => {
@@ -182,6 +183,7 @@ const HomeScreen = () => {
         visible={showWithdraw}
         onClose={() => setShowWithdraw(false)}
       />
+      <StatusBar style="light" />
     </View>
   );
 };
